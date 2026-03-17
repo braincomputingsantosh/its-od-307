@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 1 — AI Problem Definition | ITS OD 307</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0a1628; --navy2:#0f2044; --cyan:#00c8e0; --cyan2:#00c8e018;
+  --gold:#f5c842; --green:#22c97a; --red:#ff5c5c; --purple:#a78bfa;
+  --orange:#fb923c; --text:#e8edf5; --muted:#7a8faf;
+  --card:#111e35; --card2:#0d1a2e; --border:#1e3358;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse 60% 50% at 80% 10%,#00c8e010 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 10% 80%,#0055aa12 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* PROGRESS */
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green));z-index:1000;transition:width .1s}
+
+/* STICKY NAV */
+.sticky-nav{position:fixed;top:0;left:0;right:0;background:#0a1628ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:900;padding:0 24px}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:4px;overflow-x:auto;height:52px;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;background:transparent;border:none;color:var(--muted);font-family:'Sora',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.nav-btn:hover,.nav-btn.active{background:var(--cyan2);color:var(--cyan);border:1px solid #00c8e030}
+.nav-logo{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);margin-right:12px;flex-shrink:0;opacity:.7}
+
+/* CONTAINER */
+.container{max-width:1000px;margin:0 auto;padding:80px 24px 100px;position:relative;z-index:1}
+
+/* HEADER */
+.page-header{padding:40px 0 48px;border-bottom:1px solid var(--border);margin-bottom:60px}
+.course-tag{display:inline-block;background:var(--cyan2);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;padding:5px 12px;border-radius:4px;border:1px solid #00c8e030;margin-bottom:16px;text-transform:uppercase}
+.page-header h1{font-size:clamp(28px,4vw,46px);font-weight:800;line-height:1.15;margin-bottom:12px;color:#fff}
+.page-header h1 span{color:var(--cyan)}
+.page-header p{font-size:14px;color:var(--muted);line-height:1.7;max-width:640px}
+.chapter-map{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.chapter-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;color:var(--text)}
+.chapter-pill:hover{border-color:var(--cyan);color:var(--cyan)}
+.chapter-pill .num{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:11px}
+
+/* SECTION WRAPPER */
+.section-wrap{margin-bottom:100px}
+.section-head{margin-bottom:36px}
+.section-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-tag::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-title{font-size:clamp(20px,3vw,30px);font-weight:800;color:#fff;line-height:1.2}
+.section-sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+/* COLOR ACCENTS */
+.c-cyan{color:var(--cyan)} .c-gold{color:var(--gold)} .c-green{color:var(--green)}
+.c-red{color:var(--red)} .c-purple{color:var(--purple)} .c-orange{color:var(--orange)}
+
+/* ANALOGY BOX */
+.analogy{background:linear-gradient(135deg,#0f2044,#0a1628);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:12px;padding:24px 28px;margin-bottom:28px}
+.analogy .alabel{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.analogy p{font-size:14px;line-height:1.8;color:#c8d6ef}
+.analogy strong{color:#fff}
+
+/* CONCEPT GRID */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+.concept-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s}
+.concept-card:hover{transform:translateY(-2px);border-color:#2a4a7a}
+.concept-card .cc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.concept-card .cc-icon{font-size:22px}
+.concept-card .cc-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:#ffffff08;padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+.concept-card h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px}
+.concept-card p{font-size:12px;color:var(--muted);line-height:1.6}
+.concept-card .accent-bar{position:absolute;top:0;left:0;right:0;height:2px}
+
+/* CLASSIFICATION CARDS */
+.class-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:28px}
+.class-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;border-top:3px solid transparent}
+.class-card h3{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.class-card .tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;margin-bottom:10px;display:inline-block}
+.class-card p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.class-card .example{font-size:12px;background:#ffffff06;border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:#9aaec8}
+.class-card .example strong{color:var(--text);display:block;margin-bottom:3px;font-size:11px}
+
+/* SCENARIO TABS */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Sora',sans-serif;font-size:12px;font-weight:600;padding:7px 18px;border-radius:8px;cursor:pointer;transition:all .2s}
+.tab-btn.active,.tab-btn:hover{background:var(--cyan2);border-color:var(--cyan);color:var(--cyan)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* SCENARIO CARD */
+.sc-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.sc-head{background:var(--card2);padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.sc-head h3{font-size:13px;font-weight:700;color:#fff}
+.badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:3px 10px;border-radius:4px;text-transform:uppercase;flex-shrink:0}
+.badge-h{background:#22c97a20;color:var(--green);border:1px solid #22c97a30}
+.badge-f{background:#f5c84220;color:var(--gold);border:1px solid #f5c84230}
+.badge-s{background:#a78bfa20;color:var(--purple);border:1px solid #a78bfa30}
+.badge-e{background:#fb923c20;color:var(--orange);border:1px solid #fb923c30}
+.sc-body{padding:18px 20px}
+.sc-row{display:grid;grid-template-columns:100px 1fr;gap:6px 14px;margin-bottom:8px;font-size:13px}
+.sc-key{color:var(--muted);font-weight:600}
+.sc-val{color:#c8d8f0;line-height:1.5}
+.verdict{margin-top:12px;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:600}
+.verdict.yes{background:#22c97a15;border:1px solid #22c97a30;color:var(--green)}
+.verdict.no{background:#ff5c5c15;border:1px solid #ff5c5c30;color:var(--red)}
+.verdict.warn{background:#f5c84215;border:1px solid #f5c84230;color:var(--gold)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+.list-block{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.list-block h4{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.list-item{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#b0c4e0;line-height:1.55;margin-bottom:8px}
+.list-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+/* EXPERTISE GRID */
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+.exp-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.exp-card .exp-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.exp-card h4{font-size:14px;font-weight:700;color:#fff;margin-bottom:8px}
+.exp-card p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.exp-card .who{font-size:11px;background:#ffffff06;border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:#8aaac8}
+
+/* ATTACK GRID */
+.attack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+.attack-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;border-top:2px solid var(--red)}
+.attack-card .a-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.attack-card h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px}
+.attack-card p{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.defense{font-size:12px;color:var(--green);background:#22c97a10;border:1px solid #22c97a25;border-radius:6px;padding:6px 10px}
+.defense::before{content:'🛡 Defense: ';font-weight:700}
+
+/* PHASE STEPS */
+.phases{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.phase{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;gap:14px}
+.phase-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--cyan);background:var(--cyan2);border:1px solid #00c8e030;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.phase h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.phase p{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ETHICS PILLARS */
+.pillar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+.pillar{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.pillar .pi-icon{font-size:24px;margin-bottom:8px}
+.pillar h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px}
+.pillar p{font-size:12px;color:var(--muted);line-height:1.55}
+
+/* FAILURE TABLE */
+.fail-table{width:100%;border-collapse:collapse;margin-bottom:28px;font-size:13px}
+.fail-table th{background:var(--card2);color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.fail-table td{padding:12px 14px;border-bottom:1px solid #131f36;color:#c0d0e8;vertical-align:top;line-height:1.5}
+.fail-table tr:hover td{background:#ffffff03}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:60px 0}
+
+/* Q&A SECTION */
+.qa-header{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:20px;display:flex;gap:14px;align-items:center}
+.qa-header .icon{font-size:22px;flex-shrink:0}
+.qa-header p{font-size:13px;color:var(--muted);line-height:1.6}
+.qa-header strong{color:var(--text)}
+
+.qblock{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;transition:border-color .2s}
+.qblock:hover{border-color:#253a5e}
+.qhead{padding:18px 20px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;user-select:none}
+.qnum{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--cyan);background:var(--cyan2);border:1px solid #00c8e030;padding:3px 9px;border-radius:4px;white-space:nowrap;margin-top:2px;flex-shrink:0}
+.qtext{font-size:13px;font-weight:600;color:#dce8ff;line-height:1.55;flex:1}
+.qarrow{font-size:16px;color:var(--muted);transition:transform .25s;flex-shrink:0;margin-top:3px}
+.qblock.open .qarrow{transform:rotate(180deg)}
+.opts{padding:0 20px 2px;list-style:none;display:none}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:8px;margin-bottom:5px;font-size:13px;color:#98b0cc;border:1px solid transparent;cursor:pointer;transition:all .15s;line-height:1.5}
+.opt:hover{background:#ffffff07;border-color:var(--border)}
+.opt .ol{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;width:22px;height:22px;border-radius:5px;background:#1a2a45;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.opt.correct{background:#22c97a18;border-color:#22c97a50;color:var(--green)}
+.opt.correct .ol{background:#22c97a30;border-color:var(--green);color:var(--green)}
+.opt.wrong{background:#ff5c5c15;border-color:#ff5c5c40;color:var(--red)}
+.opt.wrong .ol{background:#ff5c5c25;border-color:var(--red);color:var(--red)}
+.opt.show-correct{background:#22c97a10;border-color:#22c97a30;color:var(--green)}
+.opt.show-correct .ol{background:#22c97a20;border-color:#22c97a50;color:var(--green)}
+.ans-block{display:none;margin:0 20px 18px;padding:14px 16px;background:#0d1e38;border:1px solid var(--border);border-radius:10px}
+.ans-block.show{display:block}
+.ans-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:7px}
+.ans-text{font-size:13px;color:#b8d0ef;line-height:1.75}
+.ans-text strong{color:#fff}
+.teacher-note{margin-top:10px;padding:10px 14px;background:#f5c84210;border:1px solid #f5c84225;border-radius:8px;font-size:12px;color:#f5c842cc;line-height:1.6}
+.teacher-note::before{content:'📋 Teacher: ';font-weight:700;color:var(--gold)}
+
+/* FOOTER */
+.page-footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.page-footer p{font-size:12px;color:var(--muted)}
+.page-footer strong{color:var(--cyan)}
+
+/* HIGHLIGHT BOX */
+.highlight{background:linear-gradient(135deg,#0d1a30,#0a1628);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px}
+.highlight.cyan{border-left:4px solid var(--cyan)}
+.highlight.purple{border-left:4px solid var(--purple)}
+.highlight.red{border-left:4px solid var(--red)}
+.highlight p{font-size:13px;color:#c0d4ee;line-height:1.75}
+.highlight strong{color:#fff}
+.highlight .hl-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+
+/* MISTAKE CARDS */
+.mistake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+.mistake{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;border-top:2px solid var(--orange)}
+.mistake .m-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1px;margin-bottom:5px}
+.mistake h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px}
+.mistake p{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* HARM TYPES */
+.harm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px}
+.harm{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.harm .hico{font-size:20px;margin-bottom:8px}
+.harm h4{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px}
+.harm p{font-size:12px;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<!-- STICKY NAV -->
+<nav class="sticky-nav">
+  <div class="nav-inner">
+    <span class="nav-logo">ITS OD 307</span>
+    <button class="nav-btn active" onclick="scrollTo('top')">Overview</button>
+    <button class="nav-btn" onclick="scrollTo('s11')">1.1 Problem ID</button>
+    <button class="nav-btn" onclick="scrollTo('s12')">1.2 Classification</button>
+    <button class="nav-btn" onclick="scrollTo('s13')">1.3 Expertise</button>
+    <button class="nav-btn" onclick="scrollTo('s14')">1.4 Security</button>
+    <button class="nav-btn" onclick="scrollTo('s15')">1.5 Ethics</button>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- PAGE HEADER -->
+<div class="page-header" id="top">
+  <div class="course-tag">ITS OD 307 · Artificial Intelligence · 2025</div>
+  <h1>Chapter 1 — <span>AI Problem Definition</span></h1>
+  <p>Complete interactive class guide covering all five Chapter 1 topics. Real-world examples from healthcare and finance. Exam-style Q&A for every section. Reference: <em>Artificial Intelligence Deep Dive — Santosh Srinivasaiah</em></p>
+  <div class="chapter-map">
+    <a class="chapter-pill" href="#s11"><span class="num">1.1</span> Problem ID & Scoping</a>
+    <a class="chapter-pill" href="#s12"><span class="num">1.2</span> Problem Classification</a>
+    <a class="chapter-pill" href="#s13"><span class="num">1.3</span> Identifying Expertise</a>
+    <a class="chapter-pill" href="#s14"><span class="num">1.4</span> Security Planning</a>
+    <a class="chapter-pill" href="#s15"><span class="num">1.5</span> Ethics & Responsible AI</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1.1
+═══════════════════════════════════════════════ -->
+<div class="section-wrap" id="s11">
+  <div class="section-head">
+    <div class="section-tag c-cyan">Section 1.1</div>
+    <div class="section-title">AI Problem Identification & Project Scoping</div>
+    <div class="section-sub">Why We Need to Learn AI · The 6 Critical Questions · Real-World Examples · AI-Worthy Checklist</div>
+  </div>
+
+  <div class="analogy">
+    <div class="alabel c-gold">🎬 Opening Hook — Use This to Open Class</div>
+    <p><strong>Imagine you're a doctor.</strong> Before prescribing medicine, you diagnose the problem first — is it a bacterial infection? A broken bone? You wouldn't give antibiotics for a fracture. The tool isn't wrong. The diagnosis is wrong.<br><br>
+    AI works the same way. <strong>Before building any AI solution, you must first define what problem you're solving.</strong> Get this wrong and it's like using a surgical robot to diagnose a common cold. In business terms: wasted resources, failed projects, and costly digital paperweights. The book's core message: <em>"the most valuable skill is knowing when AI is — and isn't — the answer."</em></p>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card"><div class="accent-bar" style="background:linear-gradient(90deg,var(--cyan),transparent)"></div><div class="cc-top"><div class="cc-icon">🔍</div><div class="cc-num">01</div></div><h4>Problem Definition</h4><p>Get crystal clear on the goal. Not "better customer service" — but "reduce wait times from 10 min to 2 min." One measurable sentence.</p></div>
+    <div class="concept-card"><div class="accent-bar" style="background:linear-gradient(90deg,var(--gold),transparent)"></div><div class="cc-top"><div class="cc-icon">❓</div><div class="cc-num">02</div></div><h4>Need Assessment</h4><p>Why does this problem matter? What happens if you don't solve it? What improves if you do?</p></div>
+    <div class="concept-card"><div class="accent-bar" style="background:linear-gradient(90deg,var(--green),transparent)"></div><div class="cc-top"><div class="cc-icon">↔️</div><div class="cc-num">03</div></div><h4>Input / Output Analysis</h4><p>What data do you have available (inputs)? What decisions or predictions should the AI produce (outputs)?</p></div>
+    <div class="concept-card"><div class="accent-bar" style="background:linear-gradient(90deg,var(--purple),transparent)"></div><div class="cc-top"><div class="cc-icon">🤖</div><div class="cc-num">04</div></div><h4>AI Suitability</h4><p>Not every problem needs AI. Does it involve pattern recognition, scale, consistency, or learning? If not — simpler tools may be better.</p></div>
+    <div class="concept-card"><div class="accent-bar" style="background:linear-gradient(90deg,var(--orange),transparent)"></div><div class="cc-top"><div class="cc-icon">⚖️</div><div class="cc-num">05</div></div><h4>Cost-Benefit Analysis</h4><p>Potential upsides (efficiency, savings) vs. downsides (cost, errors, privacy). All six factors must be weighed before approval.</p></div>
+    <div class="concept-card"><div class="accent-bar" style="background:linear-gradient(90deg,var(--red),transparent)"></div><div class="cc-top"><div class="cc-icon">🎯</div><div class="cc-num">06</div></div><h4>Success Metrics & Risk</h4><p>What does success look like in measurable terms? What's the acceptable error rate? What's the fallback plan if AI fails?</p></div>
+  </div>
+
+  <!-- Real-world tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('11h',this,'s11')">🏥 Healthcare</button>
+    <button class="tab-btn" onclick="showTab('11f',this,'s11')">💳 Finance</button>
+    <button class="tab-btn" onclick="showTab('11n',this,'s11')">🚫 When NOT to Use AI</button>
+  </div>
+  <div class="tab-content active" id="11h">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare</span><h3>Emergency Room Patient Triage</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">ER staff need to consistently prioritize patients by severity — human triage varies during peak hours</span></div><div class="sc-row"><span class="sc-key">Inputs</span><span class="sc-val">Vital signs, symptoms, age, medical history, arrival time</span></div><div class="sc-row"><span class="sc-key">Output</span><span class="sc-val">Priority level → Critical / Urgent / Standard / Non-urgent</span></div><div class="sc-row"><span class="sc-key">Why AI</span><span class="sc-val">Pattern recognition across thousands of cases; consistent 24/7; learns from past triage outcomes</span></div><div class="sc-row"><span class="sc-key">Key Risk</span><span class="sc-val">Misclassification is life-threatening — requires 95%+ accuracy and constant human oversight</span></div><div class="verdict yes">✅ AI-Worthy — Pattern recognition, high volume, measurable outcome, clear inputs/outputs</div></div></div>
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare</span><h3>Medication Adherence Predictor</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">Patients miss medications, causing treatment failures and costly hospitalizations</span></div><div class="sc-row"><span class="sc-key">Inputs</span><span class="sc-val">Demographics, prescription history, past reminder response rates</span></div><div class="sc-row"><span class="sc-key">Output</span><span class="sc-val">Risk score for non-adherence + optimal reminder timing per patient</span></div><div class="sc-row"><span class="sc-key">Success Metric</span><span class="sc-val">20% increase in adherence, 15% reduction in emergency visits</span></div><div class="verdict yes">✅ AI-Worthy — Personalization at scale, strong historical data, clear measurable goal</div></div></div>
+  </div>
+  <div class="tab-content" id="11f">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance</span><h3>Real-Time Credit Card Fraud Detection</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">Fraudulent transactions must be flagged in milliseconds — no human team can review every transaction</span></div><div class="sc-row"><span class="sc-key">Inputs</span><span class="sc-val">Transaction amount, location, time, merchant type, customer history, device fingerprint</span></div><div class="sc-row"><span class="sc-key">Output</span><span class="sc-val">Fraud probability → Approve / Decline / Flag for Review</span></div><div class="sc-row"><span class="sc-key">Success Metric</span><span class="sc-val">99.9% accuracy, &lt;1% false positives, sub-second response time</span></div><div class="verdict yes">✅ AI-Worthy — Real-time scale, evolving patterns, enormous ROI from automation</div></div></div>
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance</span><h3>Personalized Savings Advisor</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">Customers need personalized financial advice but hiring advisors for millions of users is impossible</span></div><div class="sc-row"><span class="sc-key">Inputs</span><span class="sc-val">Transaction history, income, stated goals, life events, market conditions</span></div><div class="sc-row"><span class="sc-key">Output</span><span class="sc-val">Personalized saving recommendations, spending alerts, investment suggestions</span></div><div class="sc-row"><span class="sc-key">Success Metric</span><span class="sc-val">30% increase in customer savings rate, 80% customer satisfaction</span></div><div class="verdict yes">✅ AI-Worthy — Scale + personalization + behavioral pattern recognition</div></div></div>
+  </div>
+  <div class="tab-content" id="11n">
+    <div class="two-col">
+      <div class="list-block"><h4><span style="color:var(--green)">✅</span> AI IS Worth Considering When…</h4>
+        <div class="list-item"><div class="dot" style="background:var(--green)"></div><span><strong>Pattern Recognition:</strong> Problem involves finding patterns in large data</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--green)"></div><span><strong>Scale:</strong> Too much data for humans to process efficiently</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--green)"></div><span><strong>Consistency:</strong> Repeatable, unbiased decisions improve outcomes</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--green)"></div><span><strong>Learning:</strong> System could improve by seeing more examples</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--green)"></div><span><strong>Automation Value:</strong> Automating creates measurable business value</span></div>
+      </div>
+      <div class="list-block"><h4><span style="color:var(--red)">🚫</span> AI is NOT Needed When…</h4>
+        <div class="list-item"><div class="dot" style="background:var(--red)"></div><span><strong>Simple Rules Work:</strong> If-then logic solves it perfectly</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--red)"></div><span><strong>One-Time Task:</strong> Problem won't recur at scale</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--red)"></div><span><strong>Creative Judgment Required:</strong> Ethical or creative thinking needed</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--red)"></div><span><strong>Insufficient Data:</strong> Fewer than hundreds of relevant examples</span></div>
+      </div>
+    </div>
+    <div class="sc-card"><div class="sc-head"><span class="badge" style="background:#00c8e020;color:var(--cyan);border:1px solid #00c8e030">Not AI</span><h3>Bank Wants AI to Add Up Daily Account Balances</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Request</span><span class="sc-val">A bank wants to use AI to total customer balances at end of each day</span></div><div class="sc-row"><span class="sc-key">Why Wrong</span><span class="sc-val">This is deterministic arithmetic — no patterns to find, no learning needed. A spreadsheet formula does this instantly at $0 cost</span></div><div class="sc-row"><span class="sc-key">Real Cost</span><span class="sc-val">Months of AI development + infrastructure + team salaries vs. a free Excel formula</span></div><div class="verdict no">🚫 Not AI-Worthy — Simple arithmetic, no pattern recognition, enormous cost for zero added value</div></div></div>
+  </div>
+
+  <!-- 1.1 Q&A -->
+  <hr class="divider" style="margin:36px 0 28px">
+  <div class="section-tag c-cyan" style="margin-bottom:12px">Section 1.1 · Exam Questions</div>
+  <div class="qa-header"><div class="icon">🎯</div><div><p><strong>How to use:</strong> Read the question aloud. Give students 60 seconds to discuss. Click to expand options — have students choose before you reveal. Click an option to check. Green = correct, Red = wrong (correct answer highlights automatically).</p></div></div>
+
+  <!-- Q1 -->
+  <div class="qblock" id="q1"><div class="qhead" onclick="toggleQ('q1')"><span class="qnum">Q 01</span><div class="qtext">A hospital wants AI to automatically sort ER patients by urgency. Which BEST describes this type of AI problem?</div><div class="qarrow">▾</div></div><ul class="opts" id="o1"><li class="opt" onclick="pickOpt(this,'o1',false)"><span class="ol">A</span>A regression problem, because the system predicts a continuous severity score</li><li class="opt" onclick="pickOpt(this,'o1',true)"><span class="ol">B</span>A classification problem, because the system sorts patients into defined priority categories</li><li class="opt" onclick="pickOpt(this,'o1',false)"><span class="ol">C</span>A reinforcement learning problem, because the system learns by trial and error</li><li class="opt" onclick="pickOpt(this,'o1',false)"><span class="ol">D</span>An unsupervised learning problem, because patient data has no labels</li></ul><div class="ans-block" id="a1"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The system places each patient into one of <strong>pre-defined, labeled categories</strong> (Critical, Urgent, Standard, Non-urgent). Any time you sort into known categories, that is a <strong>classification problem</strong>. Regression outputs a continuous number. Reinforcement learning uses trial-and-error rewards. Unsupervised learning is for when no labels exist upfront.</div><div class="teacher-note">Ask: "What would the inputs be?" Expected: vitals, symptoms, age, arrival time. This connects to Input/Output Analysis — the 3rd critical question.</div></div></div>
+
+  <!-- Q2 -->
+  <div class="qblock" id="q2"><div class="qhead" onclick="toggleQ('q2')"><span class="qnum">Q 02</span><div class="qtext">A project manager writes: "We want AI to improve customer service." According to the Problem Identification framework, what is the PRIMARY issue with this statement?</div><div class="qarrow">▾</div></div><ul class="opts" id="o2"><li class="opt" onclick="pickOpt(this,'o2',false)"><span class="ol">A</span>Customer service is not a valid domain for AI applications</li><li class="opt" onclick="pickOpt(this,'o2',true)"><span class="ol">B</span>The statement is too vague and lacks measurable, specific outcomes</li><li class="opt" onclick="pickOpt(this,'o2',false)"><span class="ol">C</span>The problem requires reinforcement learning, which is too advanced</li><li class="opt" onclick="pickOpt(this,'o2',false)"><span class="ol">D</span>The problem does not include enough input data sources</li></ul><div class="ans-block" id="a2"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The framework requires <strong>clear, specific, measurable problem definitions</strong> — ideally one sentence. "Improve customer service" cannot be built upon, measured, or scoped. The correct version: <em>"Reduce wait times for simple inquiries from 10 minutes to 2 minutes."</em></div><div class="teacher-note">Classroom exercise: Ask students to rewrite this as a proper one-sentence problem statement using the framework. Give 90 seconds, then share.</div></div></div>
+
+  <!-- Q3 -->
+  <div class="qblock" id="q3"><div class="qhead" onclick="toggleQ('q3')"><span class="qnum">Q 03</span><div class="qtext">An IT team recommends NOT using AI to auto-total daily sales figures. Which reason from the framework BEST justifies this?</div><div class="qarrow">▾</div></div><ul class="opts" id="o3"><li class="opt" onclick="pickOpt(this,'o3',false)"><span class="ol">A</span>The company lacks budget for AI infrastructure</li><li class="opt" onclick="pickOpt(this,'o3',false)"><span class="ol">B</span>The problem involves too much data for AI to process</li><li class="opt" onclick="pickOpt(this,'o3',true)"><span class="ol">C</span>The problem can be solved with simple arithmetic and requires no pattern recognition</li><li class="opt" onclick="pickOpt(this,'o3',false)"><span class="ol">D</span>AI systems cannot work with sales data</li></ul><div class="ans-block" id="a3"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text">The "AI-Not-Needed" red flag: <strong>can the problem be solved with simple rules or arithmetic?</strong> Adding numbers is deterministic — there's nothing to learn, no patterns to find. The framework reason is always about problem suitability first, not budget or technical limits.</div><div class="teacher-note">Exam trap: Budget (A) sounds correct but is a business constraint, not the framework reason. Train students to filter through suitability first.</div></div></div>
+
+  <!-- Q4 -->
+  <div class="qblock" id="q4"><div class="qhead" onclick="toggleQ('q4')"><span class="qnum">Q 04</span><div class="qtext">In the AI Problem Identification framework, "Input/Output Analysis" refers to which of the following?</div><div class="qarrow">▾</div></div><ul class="opts" id="o4"><li class="opt" onclick="pickOpt(this,'o4',false)"><span class="ol">A</span>Analyzing the power consumption of AI hardware</li><li class="opt" onclick="pickOpt(this,'o4',true)"><span class="ol">B</span>Identifying what data is available to the AI and what decisions it should produce</li><li class="opt" onclick="pickOpt(this,'o4',false)"><span class="ol">C</span>Calculating the cost of AI vs manual processes</li><li class="opt" onclick="pickOpt(this,'o4',false)"><span class="ol">D</span>Reviewing legal requirements for data storage</li></ul><div class="ans-block" id="a4"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The book defines this as: <em>"Identifying what information you have available (inputs) and what you want to achieve (outputs)."</em> For fraud detection — Inputs: transaction amount, location, time, history. Output: Approve / Decline / Flag. Without this analysis, you cannot choose an algorithm or measure success.</div><div class="teacher-note">Quick exercise: For the ER triage scenario, ask students to name 3 inputs and 1 output in 30 seconds.</div></div></div>
+
+  <!-- Q5 -->
+  <div class="qblock" id="q5"><div class="qhead" onclick="toggleQ('q5')"><span class="qnum">Q 05</span><div class="qtext">Which success metric is MOST appropriate for an AI system designed to predict patients at risk of missing medications?</div><div class="qarrow">▾</div></div><ul class="opts" id="o5"><li class="opt" onclick="pickOpt(this,'o5',false)"><span class="ol">A</span>The number of AI engineers needed to maintain the system</li><li class="opt" onclick="pickOpt(this,'o5',false)"><span class="ol">B</span>The speed at which the AI model was trained</li><li class="opt" onclick="pickOpt(this,'o5',true)"><span class="ol">C</span>A measurable increase in the percentage of patients taking medications as prescribed</li><li class="opt" onclick="pickOpt(this,'o5',false)"><span class="ol">D</span>The number of data features used in the model</li></ul><div class="ans-block" id="a5"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text">From the book: <em>"20% increase in medication adherence, 15% reduction in emergency visits."</em> Success metrics must tie directly to the original business problem and reflect real-world outcome improvement — not technical model performance. A, B, and D are technical/operational metrics, not business outcomes.</div><div class="teacher-note">Key distinction to reinforce: Model accuracy ≠ Business success metric. Both matter, but the problem statement must define the business metric first.</div></div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1.2
+═══════════════════════════════════════════════ -->
+<div class="section-wrap" id="s12">
+  <div class="section-head">
+    <div class="section-tag c-purple">Section 1.2</div>
+    <div class="section-title">AI Problem Classification</div>
+    <div class="section-sub">The 4 Main Types · Supervised vs Unsupervised · Decision Framework · Real-World Examples</div>
+  </div>
+
+  <div class="analogy" style="border-left-color:var(--purple)">
+    <div class="alabel c-purple">🩺 Opening Analogy</div>
+    <p><strong>Imagine you're a doctor treating a patient.</strong> Is it a bacterial infection (antibiotics), a broken bone (cast), or a chronic condition (lifestyle change)? Before prescribing anything, you classify the problem type — because the classification determines everything: what treatment to use, how to measure success, and even whether your intervention will work.<br><br>
+    AI works the same way. <strong>Getting the problem classification wrong is like using a hammer to tighten a screw — disastrous results with the wrong tool.</strong> In business: wasted resources, failed projects, missed opportunities.</p>
+  </div>
+
+  <div class="class-grid">
+    <div class="class-card" style="border-top-color:var(--cyan)">
+      <span class="tag" style="background:var(--cyan2);color:var(--cyan);border:1px solid #00c8e030">Supervised Learning</span>
+      <h3>1. Classification</h3>
+      <p>You have labeled examples. The AI learns to sort new things into one of the predefined categories.</p>
+      <div class="example"><strong>Analogy:</strong> Showing a child pictures labeled "dog" and "cat" until they can identify new animals</div>
+      <div class="example" style="margin-top:6px"><strong>Healthcare:</strong> Is this tumor malignant or benign?</div>
+      <div class="example" style="margin-top:6px"><strong>Finance:</strong> Is this transaction fraudulent or legitimate?</div>
+    </div>
+    <div class="class-card" style="border-top-color:var(--green)">
+      <span class="tag" style="background:#22c97a20;color:var(--green);border:1px solid #22c97a30">Supervised Learning</span>
+      <h3>2. Regression</h3>
+      <p>You have labeled examples with numerical outputs. The AI learns to predict a specific number.</p>
+      <div class="example"><strong>Analogy:</strong> Learning to estimate house prices by studying thousands of homes with known prices</div>
+      <div class="example" style="margin-top:6px"><strong>Healthcare:</strong> Predict a patient's blood sugar level in 6 months</div>
+      <div class="example" style="margin-top:6px"><strong>Finance:</strong> Predict tomorrow's stock price or loan default risk score</div>
+    </div>
+    <div class="class-card" style="border-top-color:var(--gold)">
+      <span class="tag" style="background:#f5c84220;color:var(--gold);border:1px solid #f5c84230">Unsupervised Learning</span>
+      <h3>3. Clustering / Grouping</h3>
+      <p>You have data but NO labels or correct answers. The AI discovers hidden patterns and natural groupings on its own.</p>
+      <div class="example"><strong>Analogy:</strong> Giving a child a box of mixed toys and asking them to organize the groups themselves</div>
+      <div class="example" style="margin-top:6px"><strong>Healthcare:</strong> Group patients with similar symptoms to find unknown disease sub-types</div>
+      <div class="example" style="margin-top:6px"><strong>Finance:</strong> Segment customers by spending behavior without predefined categories</div>
+    </div>
+    <div class="class-card" style="border-top-color:var(--orange)">
+      <span class="tag" style="background:#fb923c20;color:var(--orange);border:1px solid #fb923c30">Reinforcement Learning</span>
+      <h3>4. Reinforcement Learning</h3>
+      <p>The AI learns by trying actions and receiving rewards or penalties. No labeled data — the AI learns from consequences.</p>
+      <div class="example"><strong>Analogy:</strong> Teaching a dog tricks using treats (reward) and no treats (penalty)</div>
+      <div class="example" style="margin-top:6px"><strong>Healthcare:</strong> AI adjusting insulin doses for diabetic patients, learning from glucose responses</div>
+      <div class="example" style="margin-top:6px"><strong>Finance:</strong> Algorithmic trading — AI making trades, learning which strategies maximize returns</div>
+    </div>
+  </div>
+
+  <div class="highlight cyan">
+    <div class="hl-label c-cyan">🔑 The Key Decision Question</div>
+    <p><strong>Ask yourself one question first:</strong> "Do I know the correct answer for my existing examples?"<br><br>
+    → <strong>YES</strong> — you have labeled data → You likely have a <strong>Supervised Learning</strong> problem (Classification if output is a category, Regression if output is a number)<br>
+    → <strong>NO</strong> — no labels exist → You likely have an <strong>Unsupervised Learning</strong> problem (discover patterns)<br>
+    → <strong>You want an agent to make sequential decisions and learn from rewards</strong> → <strong>Reinforcement Learning</strong></p>
+  </div>
+
+  <!-- Tabs 1.2 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('12h',this,'s12')">🏥 Healthcare Examples</button>
+    <button class="tab-btn" onclick="showTab('12f',this,'s12')">💳 Finance Examples</button>
+    <button class="tab-btn" onclick="showTab('12d',this,'s12')">🗂 Decision Framework</button>
+  </div>
+  <div class="tab-content active" id="12h">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare · Classification</span><h3>Cancer Detection from Mammograms</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">AI reviews mammogram images and determines whether tissue is cancerous or normal</span></div><div class="sc-row"><span class="sc-key">Why Classification?</span><span class="sc-val">Output is a category — "Malignant" or "Benign." The AI has thousands of labeled training images from confirmed diagnoses</span></div><div class="sc-row"><span class="sc-key">Real Impact</span><span class="sc-val">A 2020 Nature study found AI detected breast cancer more accurately than two radiologists reviewing the same images</span></div><div class="verdict yes">✅ Classification — Labeled data, categorical output (malignant / benign)</div></div></div>
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare · Unsupervised</span><h3>Patient Subtype Discovery</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">Researchers want to discover whether there are distinct sub-types of a disease without knowing what the groups are in advance</span></div><div class="sc-row"><span class="sc-key">Why Unsupervised?</span><span class="sc-val">No predefined labels exist. The AI discovers natural clusters in patient data — researchers may find 3 disease subtypes they didn't know existed</span></div><div class="sc-row"><span class="sc-key">Real Impact</span><span class="sc-val">Enabled personalized treatment approaches for different cancer subtypes, improving survival rates</span></div><div class="verdict warn">🔶 Unsupervised — No labels, AI discovers unknown groupings</div></div></div>
+  </div>
+  <div class="tab-content" id="12f">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance · Classification</span><h3>Email Spam / Fraud Flagging</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">AI flags whether incoming emails or transactions belong to one of two categories: legitimate or fraudulent</span></div><div class="sc-row"><span class="sc-key">Why Classification?</span><span class="sc-val">Output is a binary category. Thousands of labeled past examples (confirmed fraud vs confirmed legitimate) train the model</span></div><div class="sc-row"><span class="sc-key">Example Flow</span><span class="sc-val">Gather labeled examples → Identify features (amount, location, time) → AI learns patterns → Classify new transactions in &lt;300ms</span></div><div class="verdict yes">✅ Classification — Binary categorical output, labeled training data available</div></div></div>
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance · Regression</span><h3>Stock Price Prediction</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Problem</span><span class="sc-val">Predict tomorrow's closing price for a given stock based on historical data and market indicators</span></div><div class="sc-row"><span class="sc-key">Why Regression?</span><span class="sc-val">Output is a continuous number (e.g., "$182.50"). Historical prices with known outcomes serve as labeled training data</span></div><div class="sc-row"><span class="sc-key">Inputs</span><span class="sc-val">Historical prices, trading volume, news sentiment, economic indicators, competitor performance</span></div><div class="verdict warn">🔶 Regression — Continuous numerical output, historical labeled data</div></div></div>
+  </div>
+  <div class="tab-content" id="12d">
+    <div class="highlight purple" style="margin-bottom:16px"><div class="hl-label c-purple">🗂 Step-by-Step Decision Framework</div><p><strong>Step 1 — Look at your data:</strong> Do you have labels (correct answers) for your examples?<br><strong>Step 2 — Examine your output:</strong> Is it a category? → Classification. Is it a number? → Regression. Unknown groups? → Unsupervised. Sequential decisions? → Reinforcement Learning.<br><strong>Step 3 — Define success:</strong> For classification: what's worse — missing a positive case (false negative) or a false alarm (false positive)? For regression: what's an acceptable margin of error?</p></div>
+    <div class="sc-card"><div class="sc-head"><span class="badge" style="background:#ff5c5c20;color:var(--red);border:1px solid #ff5c5c30">Common Pitfall</span><h3>Confusing Classification with Regression</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Mistake</span><span class="sc-val">Building a regression model when you needed classification — e.g., predicting "79% fraud probability" when you just need Approve/Decline</span></div><div class="sc-row"><span class="sc-key">Why It Matters</span><span class="sc-val">Wrong problem type → wrong algorithm → wrong evaluation metrics → system fails in production</span></div><div class="sc-row"><span class="sc-key">Fix</span><span class="sc-val">Always define your output type first: category or number? That single answer determines your problem type</span></div><div class="verdict no">🚫 Misclassifying the problem type invalidates everything downstream</div></div></div>
+  </div>
+
+  <!-- 1.2 Q&A -->
+  <hr class="divider" style="margin:36px 0 28px">
+  <div class="section-tag c-purple" style="margin-bottom:12px">Section 1.2 · Exam Questions</div>
+  <div class="qa-header"><div class="icon">🎯</div><div><p><strong>5 exam-style questions for Section 1.2.</strong> Cover all four problem types. Common exam trap: distinguishing classification from regression, and supervised from unsupervised.</p></div></div>
+
+  <!-- Q6 -->
+  <div class="qblock" id="q6"><div class="qhead" onclick="toggleQ('q6')"><span class="qnum">Q 06</span><div class="qtext">An AI system predicts tomorrow's stock price as a specific dollar amount (e.g., $182.50). Which type of AI problem is this?</div><div class="qarrow">▾</div></div><ul class="opts" id="o6"><li class="opt" onclick="pickOpt(this,'o6',false)"><span class="ol">A</span>Classification, because the AI is making a decision about the stock</li><li class="opt" onclick="pickOpt(this,'o6',true)"><span class="ol">B</span>Regression, because the AI is predicting a continuous numerical value</li><li class="opt" onclick="pickOpt(this,'o6',false)"><span class="ol">C</span>Unsupervised learning, because stock patterns are unknown</li><li class="opt" onclick="pickOpt(this,'o6',false)"><span class="ol">D</span>Reinforcement learning, because the AI learns from market rewards</li></ul><div class="ans-block" id="a6"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text"><strong>Regression</strong> is used whenever the AI must output a <strong>continuous numerical value</strong> — like a price, temperature, or probability score. Classification outputs a category (buy/sell/hold). The output type is the deciding factor: number → regression, category → classification.</div><div class="teacher-note">Memory tip: "Regression = Real numbers. Classification = Categories." Have students repeat this.</div></div></div>
+
+  <!-- Q7 -->
+  <div class="qblock" id="q7"><div class="qhead" onclick="toggleQ('q7')"><span class="qnum">Q 07</span><div class="qtext">A marketing team gives an AI system customer purchase data with NO predefined customer segments. The AI discovers three natural groups: bargain hunters, brand loyalists, and impulse buyers. Which type of AI problem is this?</div><div class="qarrow">▾</div></div><ul class="opts" id="o7"><li class="opt" onclick="pickOpt(this,'o7',false)"><span class="ol">A</span>Classification, because the customers end up in categories</li><li class="opt" onclick="pickOpt(this,'o7',false)"><span class="ol">B</span>Regression, because customer lifetime value is being predicted</li><li class="opt" onclick="pickOpt(this,'o7',true)"><span class="ol">C</span>Unsupervised learning, because no predefined labels existed before the AI discovered the groups</li><li class="opt" onclick="pickOpt(this,'o7',false)"><span class="ol">D</span>Reinforcement learning, because the AI improved by receiving customer feedback</li></ul><div class="ans-block" id="a7"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text"><strong>Unsupervised learning</strong> is defined by the absence of predefined labels. The team did not tell the AI what groups exist — the AI discovered them. The book's analogy: "Giving a child a box of mixed toys and asking them to organize the groups themselves." The result may include categories, but the process uses no labeled training data.</div><div class="teacher-note">Exam trap: Option A sounds appealing because the output IS categories. The key distinction is whether labels existed BEFORE training. If yes → supervised classification. If no → unsupervised.</div></div></div>
+
+  <!-- Q8 -->
+  <div class="qblock" id="q8"><div class="qhead" onclick="toggleQ('q8')"><span class="qnum">Q 08</span><div class="qtext">A hospital AI analyzes thousands of mammogram images that have been reviewed and labeled by radiologists as "cancerous" or "normal." The AI learns to identify cancer in new images. Which type of AI problem is this?</div><div class="qarrow">▾</div></div><ul class="opts" id="o8"><li class="opt" onclick="pickOpt(this,'o8',true)"><span class="ol">A</span>Supervised learning — classification, because labeled training data and categorical output exist</li><li class="opt" onclick="pickOpt(this,'o8',false)"><span class="ol">B</span>Unsupervised learning, because the AI must discover patterns in medical images</li><li class="opt" onclick="pickOpt(this,'o8',false)"><span class="ol">C</span>Reinforcement learning, because the AI learns from patient outcomes over time</li><li class="opt" onclick="pickOpt(this,'o8',false)"><span class="ol">D</span>Supervised learning — regression, because cancer severity is measured on a scale</li></ul><div class="ans-block" id="a8"><div class="ans-label">✅ Correct Answer: A</div><div class="ans-text"><strong>Two conditions confirm supervised learning — classification:</strong><br>1. Labeled training data exists (radiologists confirmed "cancerous" or "normal" for each image)<br>2. Output is a category (cancerous / normal), not a continuous number<br><br>D is wrong because regression would output a number like "37% cancer probability" — this scenario outputs a discrete category.</div><div class="teacher-note">This mirrors the real-world example from the book: Google's AI detecting diabetic retinopathy from eye scans — labeled by ophthalmologists, output is a diagnosis category.</div></div></div>
+
+  <!-- Q9 -->
+  <div class="qblock" id="q9"><div class="qhead" onclick="toggleQ('q9')"><span class="qnum">Q 09</span><div class="qtext">Which of the following BEST describes the key difference between supervised and unsupervised learning?</div><div class="qarrow">▾</div></div><ul class="opts" id="o9"><li class="opt" onclick="pickOpt(this,'o9',false)"><span class="ol">A</span>Supervised learning uses more data than unsupervised learning</li><li class="opt" onclick="pickOpt(this,'o9',true)"><span class="ol">B</span>Supervised learning trains on labeled examples with known correct answers; unsupervised learning discovers patterns in unlabeled data</li><li class="opt" onclick="pickOpt(this,'o9',false)"><span class="ol">C</span>Supervised learning is faster and cheaper to implement</li><li class="opt" onclick="pickOpt(this,'o9',false)"><span class="ol">D</span>Unsupervised learning requires human oversight; supervised learning does not</li></ul><div class="ans-block" id="a9"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The defining characteristic is the presence or absence of <strong>labels</strong>. Supervised = "answer key exists" (like a teacher grading homework). Unsupervised = "no answer key — find the patterns yourself" (like sorting a mixed box of objects by your own logic). Amount of data, speed, and cost vary by context and do not define the type.</div><div class="teacher-note">Analogy from class notes: "Answer key vs. sorting unknown coins." Write this on the board. Students consistently find this memorable for exam recall.</div></div></div>
+
+  <!-- Q10 -->
+  <div class="qblock" id="q10"><div class="qhead" onclick="toggleQ('q10')"><span class="qnum">Q 10</span><div class="qtext">A pharmaceutical company wants AI to learn which drug combinations produce the best patient outcomes by testing combinations and observing results over time — without pre-labeled training data. Which problem type BEST describes this?</div><div class="qarrow">▾</div></div><ul class="opts" id="o10"><li class="opt" onclick="pickOpt(this,'o10',false)"><span class="ol">A</span>Classification, because outcomes are categorized as effective or ineffective</li><li class="opt" onclick="pickOpt(this,'o10',false)"><span class="ol">B</span>Regression, because effectiveness is measured as a numerical score</li><li class="opt" onclick="pickOpt(this,'o10',false)"><span class="ol">C</span>Unsupervised learning, because no labeled data exists</li><li class="opt" onclick="pickOpt(this,'o10',true)"><span class="ol">D</span>Reinforcement learning, because the AI learns from the consequences of its actions (drug combinations) over time</li></ul><div class="ans-block" id="a10"><div class="ans-label">✅ Correct Answer: D</div><div class="ans-text"><strong>Reinforcement learning</strong> is defined by: (1) an AI agent that takes <strong>sequential actions</strong>, (2) receives <strong>rewards or penalties</strong> based on outcomes, and (3) learns to maximize positive outcomes over time — with no pre-labeled dataset. The book's analogy: "Teaching a dog tricks using treats." The drug company setup matches all three conditions.</div><div class="teacher-note">Reinforce: RL is less common in the certification than supervised/unsupervised, but appears in tricky questions. The key markers are: agent + actions + rewards over time.</div></div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1.3
+═══════════════════════════════════════════════ -->
+<div class="section-wrap" id="s13">
+  <div class="section-head">
+    <div class="section-tag c-gold">Section 1.3</div>
+    <div class="section-title">Identifying Areas of Expertise for AI Projects</div>
+    <div class="section-sub">The 4 Expertise Types · Why Each Matters · Common Mistakes · Healthcare & Finance Examples</div>
+  </div>
+
+  <div class="analogy" style="border-left-color:var(--green)">
+    <div class="alabel c-green">🏥 Opening Story</div>
+    <p>A hospital wants AI to detect cancer in X-rays. They hire a brilliant team of machine learning engineers. The AI works — technically. But it recommends treatments that violate hospital drug protocols and doesn't account for insurance coverage constraints. The AI team had no idea. Nobody asked a doctor, a compliance officer, or an IT architect to join the project.<br><br>
+    <strong>The book's lesson:</strong> In today's world, AI isn't just about algorithms. It requires a diverse team that bridges <em>what's technically possible</em> and <em>what's actually useful in the real world.</em> The difference between projects that succeed and those that fail often comes down to one factor: <strong>having the right expertise in the room from day one.</strong></p>
+  </div>
+
+  <div class="exp-grid">
+    <div class="exp-card"><div class="exp-label c-cyan">Type 1</div><h4>Business Expertise</h4><p>Understanding the organization's goals, constraints, regulations, and risk management. Defines what "success" means for the organization — not just for the model.</p><div class="who">👤 Who: Business analysts, product managers, compliance officers, executives</div></div>
+    <div class="exp-card"><div class="exp-label c-gold">Type 2</div><h4>Domain (Subject-Matter) Expertise</h4><p>Deep knowledge of the specific field the AI operates in. Without this, the AI may be technically correct but clinically or financially meaningless.</p><div class="who">👤 Healthcare: Doctors, nurses, pharmacists. Finance: Loan officers, risk analysts, traders</div></div>
+    <div class="exp-card"><div class="exp-label c-purple">Type 3</div><h4>AI Expertise</h4><p>Knowledge of machine learning algorithms, model training, evaluation metrics, and data pipelines. Knows which algorithm fits which problem type.</p><div class="who">👤 Who: Data scientists, ML engineers, AI researchers, statisticians</div></div>
+    <div class="exp-card"><div class="exp-label c-orange">Type 4</div><h4>Implementation Expertise</h4><p>Skills needed to deploy and maintain the AI system in real-world production. Bridges the gap between a model in a notebook and a system that runs in a hospital or bank 24/7.</p><div class="who">👤 Who: Software engineers, DevOps, cloud architects, IT security specialists</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('13h',this,'s13')">🏥 Healthcare Example</button>
+    <button class="tab-btn" onclick="showTab('13f',this,'s13')">💳 Finance Example</button>
+    <button class="tab-btn" onclick="showTab('13m',this,'s13')">⚠️ Common Mistakes</button>
+  </div>
+  <div class="tab-content active" id="13h">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare</span><h3>AI System: Cancer Detection in Medical Imaging</h3></div><div class="sc-body">
+      <div class="sc-row"><span class="sc-key">Business</span><span class="sc-val">Hospital leadership defines ROI targets, patient safety requirements, liability limits, and regulatory compliance with FDA and HIPAA</span></div>
+      <div class="sc-row"><span class="sc-key">Domain</span><span class="sc-val">Radiologists label training images, define what "suspicious" means clinically, flag edge cases the AI must handle correctly</span></div>
+      <div class="sc-row"><span class="sc-key">AI</span><span class="sc-val">Data scientists select a CNN (convolutional neural network), train on labeled scans, evaluate with sensitivity/specificity metrics</span></div>
+      <div class="sc-row"><span class="sc-key">Implementation</span><span class="sc-val">Engineers integrate AI with hospital PACS (imaging system), ensure DICOM format compatibility, deploy with 99.9% uptime SLA, monitor for model drift</span></div>
+      <div class="verdict yes">✅ All 4 expertise types required — missing any one causes project failure</div>
+    </div></div>
+  </div>
+  <div class="tab-content" id="13f">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance</span><h3>AI System: Credit Risk Assessment</h3></div><div class="sc-body">
+      <div class="sc-row"><span class="sc-key">Business</span><span class="sc-val">Risk management defines acceptable default rates, profit margins, regulatory constraints (Fair Credit Reporting Act, Equal Credit Opportunity Act)</span></div>
+      <div class="sc-row"><span class="sc-key">Domain</span><span class="sc-val">Experienced loan officers provide insight into which features actually predict default; flag proxy variables that could cause illegal discrimination</span></div>
+      <div class="sc-row"><span class="sc-key">AI</span><span class="sc-val">ML team selects gradient boosting model, trains on historical loan data, evaluates with precision/recall, tunes for the right false-positive/negative tradeoff</span></div>
+      <div class="sc-row"><span class="sc-key">Implementation</span><span class="sc-val">Engineers deploy to production loan system, ensure &lt;200ms response time for real-time decisions, build audit logging for regulatory review</span></div>
+      <div class="verdict yes">✅ Each expertise type adds irreplaceable value — especially regulatory/domain expertise in finance</div>
+    </div></div>
+  </div>
+  <div class="tab-content" id="13m">
+    <div class="mistake-grid">
+      <div class="mistake"><div class="m-num">MISTAKE 01</div><h4>Assuming AI Expertise Is Enough</h4><p>Teams hire data scientists and build technically correct models that solve the wrong business problem. The model runs perfectly — but recommends something the organization would never do.</p></div>
+      <div class="mistake"><div class="m-num">MISTAKE 02</div><h4>Forgetting Implementation</h4><p>Building a beautiful model in a notebook that can never be deployed. No API, no integration, no monitoring. The project dies at the handoff from data science to engineering.</p></div>
+      <div class="mistake"><div class="m-num">MISTAKE 03</div><h4>Ignoring Regulatory Requirements</h4><p>In healthcare and finance, strict laws govern AI use. Teams that don't include compliance experts early discover (often too late) that their system violates HIPAA, Fair Lending laws, or FDA guidelines.</p></div>
+      <div class="mistake"><div class="m-num">MISTAKE 04</div><h4>Underestimating Data Expertise</h4><p>Domain experts must be involved in labeling training data and validating outputs. A radiologist who labels "suspicious" areas is as important as the ML engineer who trains the model.</p></div>
+    </div>
+  </div>
+
+  <!-- 1.3 Q&A -->
+  <hr class="divider" style="margin:36px 0 28px">
+  <div class="section-tag c-gold" style="margin-bottom:12px">Section 1.3 · Exam Questions</div>
+
+  <!-- Q11 -->
+  <div class="qblock" id="q11"><div class="qhead" onclick="toggleQ('q11')"><span class="qnum">Q 11</span><div class="qtext">A team of data scientists builds an AI loan approval system. The model achieves 95% accuracy in testing but gets rejected by the compliance team before launch. Which type of expertise was MOST likely missing from the project?</div><div class="qarrow">▾</div></div><ul class="opts" id="o11"><li class="opt" onclick="pickOpt(this,'o11',false)"><span class="ol">A</span>AI expertise, because the model accuracy was too low</li><li class="opt" onclick="pickOpt(this,'o11',true)"><span class="ol">B</span>Business expertise, specifically regulatory and compliance knowledge of fair lending laws</li><li class="opt" onclick="pickOpt(this,'o11',false)"><span class="ol">C</span>Implementation expertise, because the system could not be deployed</li><li class="opt" onclick="pickOpt(this,'o11',false)"><span class="ol">D</span>Domain expertise, because loan officers were not consulted</li></ul><div class="ans-block" id="a11"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The model was technically excellent (95% accuracy) but violated regulatory requirements — the book's Mistake #3. <strong>Business expertise</strong> encompasses regulatory knowledge, compliance constraints, and legal requirements. In finance, AI systems must comply with the Fair Credit Reporting Act and Equal Credit Opportunity Act before any deployment. High model accuracy does not guarantee regulatory compliance.</div><div class="teacher-note">Real-world anchor: Amazon's hiring AI was technically excellent but violated fairness laws and was scrapped. Technical success ≠ compliance success.</div></div></div>
+
+  <!-- Q12 -->
+  <div class="qblock" id="q12"><div class="qhead" onclick="toggleQ('q12')"><span class="qnum">Q 12</span><div class="qtext">A hospital AI project includes data scientists, ML engineers, and software architects. Doctors and nurses were not involved in the project. Which outcome is MOST likely, according to the expertise framework?</div><div class="qarrow">▾</div></div><ul class="opts" id="o12"><li class="opt" onclick="pickOpt(this,'o12',false)"><span class="ol">A</span>The project will succeed because technical expertise is sufficient for AI projects</li><li class="opt" onclick="pickOpt(this,'o12',false)"><span class="ol">B</span>The project will fail at deployment due to missing implementation expertise</li><li class="opt" onclick="pickOpt(this,'o12',true)"><span class="ol">C</span>The AI may be technically functional but produce recommendations that are clinically inappropriate or unsafe</li><li class="opt" onclick="pickOpt(this,'o12',false)"><span class="ol">D</span>The project will succeed, but slower than expected</li></ul><div class="ans-block" id="a12"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text">Doctors and nurses provide <strong>domain expertise</strong> — the clinical knowledge of what constitutes appropriate care, which features actually matter medically, and how AI outputs will be used in practice. Without them, the AI might recommend drug dosages in wrong units, flag the wrong patient populations, or miss nuances only a clinician would catch. The book's example: an AI trained without diverse patient data that systematically underestimates urgency for certain demographics.</div><div class="teacher-note">Discussion prompt: "What would happen if a financial AI was built without any input from experienced loan officers?" Same principle — domain expertise is irreplaceable.</div></div></div>
+
+  <!-- Q13 -->
+  <div class="qblock" id="q13"><div class="qhead" onclick="toggleQ('q13')"><span class="qnum">Q 13</span><div class="qtext">Which expertise type is PRIMARILY responsible for ensuring an AI model can run reliably in a hospital's existing systems 24 hours a day, 7 days a week?</div><div class="qarrow">▾</div></div><ul class="opts" id="o13"><li class="opt" onclick="pickOpt(this,'o13',false)"><span class="ol">A</span>Business expertise</li><li class="opt" onclick="pickOpt(this,'o13',false)"><span class="ol">B</span>Domain expertise</li><li class="opt" onclick="pickOpt(this,'o13',false)"><span class="ol">C</span>AI expertise</li><li class="opt" onclick="pickOpt(this,'o13',true)"><span class="ol">D</span>Implementation expertise</li></ul><div class="ans-block" id="a13"><div class="ans-label">✅ Correct Answer: D</div><div class="ans-text"><strong>Implementation expertise</strong> covers deploying and maintaining AI in real-world production environments — including uptime requirements, system integration, monitoring for model drift, and infrastructure reliability. This is the bridge between "the model works in a notebook" and "the model works reliably in a live hospital system." Without it, even the best AI model will fail in production.</div><div class="teacher-note">Analogy: A race car engineer (AI expertise) designs a perfect engine. The pit crew (implementation) keeps it running during the race. Both are essential — but the pit crew determines whether the car finishes.</div></div></div>
+
+  <!-- Q14 -->
+  <div class="qblock" id="q14"><div class="qhead" onclick="toggleQ('q14')"><span class="qnum">Q 14</span><div class="qtext">According to the book, what is the MOST common mistake teams make when starting an AI project in a highly regulated industry like healthcare or finance?</div><div class="qarrow">▾</div></div><ul class="opts" id="o14"><li class="opt" onclick="pickOpt(this,'o14',false)"><span class="ol">A</span>Using too many data scientists on the team</li><li class="opt" onclick="pickOpt(this,'o14',false)"><span class="ol">B</span>Choosing the wrong algorithm before collecting data</li><li class="opt" onclick="pickOpt(this,'o14',true)"><span class="ol">C</span>Not including regulatory and compliance experts early in the planning phase</li><li class="opt" onclick="pickOpt(this,'o14',false)"><span class="ol">D</span>Starting with too small a dataset</li></ul><div class="ans-block" id="a14"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text">The book explicitly names this as Mistake #3: <em>"Not Understanding Regulatory Requirements — heavily regulated industries have strict rules about AI use. Teams that don't include compliance experts early discover too late that their system violates regulations."</em> The fix: include compliance and regulatory experts in the very first planning meeting, not after building the model.</div><div class="teacher-note">This is a high-frequency exam topic because it's counterintuitive — students expect technical mistakes to be the primary failure mode, but process/governance failures dominate real-world AI project failures.</div></div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1.4
+═══════════════════════════════════════════════ -->
+<div class="section-wrap" id="s14">
+  <div class="section-head">
+    <div class="section-tag c-red">Section 1.4</div>
+    <div class="section-title">AI Security Planning</div>
+    <div class="section-sub">Why AI Has Unique Vulnerabilities · 4 Attack Types · Access Control · Healthcare & Finance Risks · Security Plan Phases</div>
+  </div>
+
+  <div class="analogy" style="border-left-color:var(--red)">
+    <div class="alabel c-red">⚠️ Opening Hook</div>
+    <p><strong>Imagine a hacker who tricks a hospital's AI into misdiagnosing cancer</strong> — not by breaking into the database, but by adding invisible pixel changes to an X-ray image that fool the AI while looking completely normal to a doctor. Or a competitor who quietly corrupts the training data for a bank's fraud detection system, teaching it to approve fraudulent transactions.<br><br>
+    <strong>AI Has Unique Vulnerabilities</strong> unlike traditional software. You can't just install a firewall. The attack surface includes the data, the model, the inputs, and even the outputs. <strong>Security is not optional — it must be built in from the very beginning, not added later.</strong></p>
+  </div>
+
+  <div class="highlight red">
+    <div class="hl-label c-red">🔑 What Is AI Security Planning?</div>
+    <p>The process of <strong>identifying, assessing, and protecting against threats</strong> that could compromise AI systems. Think of it as building a fortress around your AI — with different gates for different types of threats: internal access, external attacks, data integrity, and infrastructure protection.</p>
+  </div>
+
+  <div class="attack-grid">
+    <div class="attack-card"><div class="a-label">Attack Type 1</div><h4>Adversarial Attacks</h4><p>Tiny, invisible changes to input data that fool the AI while appearing normal to humans. Example: imperceptible pixel changes to an X-ray that make a tumor appear benign.</p><div class="defense">Input validation, multiple model verification, anomaly detection for unusual inputs</div></div>
+    <div class="attack-card"><div class="a-label">Attack Type 2</div><h4>Data Poisoning</h4><p>Corrupting the training data to make the AI learn wrong patterns. Example: injecting fraudulent-labeled-as-legitimate transactions into training data to teach fraud detection to approve fraud.</p><div class="defense">Data validation and provenance tracking; secure, audited training pipelines</div></div>
+    <div class="attack-card"><div class="a-label">Attack Type 3</div><h4>Model Extraction</h4><p>Stealing an AI model by repeatedly querying it and reverse-engineering its behavior. Example: a competitor rebuilds your proprietary credit scoring model through API calls.</p><div class="defense">Rate limiting on API queries; output obfuscation; query monitoring and anomaly alerts</div></div>
+    <div class="attack-card"><div class="a-label">Attack Type 4</div><h4>Privacy Attacks</h4><p>Extracting sensitive personal information from AI models. Example: a model trained on patient records may "memorize" and inadvertently reveal private patient data when queried.</p><div class="defense">Differential privacy techniques; output filtering; minimum query thresholds</div></div>
+  </div>
+
+  <div class="section-tag c-red" style="margin-bottom:14px;margin-top:32px">Access Control — The "Least Privilege" Principle</div>
+  <div class="analogy" style="border-left-color:var(--purple);margin-bottom:20px">
+    <div class="alabel c-purple">🔑 Analogy: Different Keys for Different Rooms</div>
+    <p>Think of this as creating different "keys" for different people in your organization. A nurse might only need Level 2 access (view recommendations and patient data). A senior radiologist needs Level 3 (modify treatment plans). A system administrator needs Level 4 (modify AI model parameters). <strong>The Principle of Least Privilege: give each person only the minimum access they need to do their job — nothing more.</strong></p>
+  </div>
+
+  <div class="section-tag c-red" style="margin-bottom:14px">Security Plan: 4-Phase Implementation</div>
+  <div class="phases">
+    <div class="phase"><div class="phase-num">P1</div><div><h4>Assessment (Weeks 1–2)</h4><p>Inventory all AI assets (models, data sources, infrastructure). Identify threat vectors. Classify data sensitivity. Map who currently has access to what.</p></div></div>
+    <div class="phase"><div class="phase-num">P2</div><div><h4>Planning (Weeks 3–4)</h4><p>Design access control levels. Define authentication requirements. Plan adversarial testing strategy. Document infrastructure security requirements.</p></div></div>
+    <div class="phase"><div class="phase-num">P3</div><div><h4>Implementation (Weeks 5–8)</h4><p>Deploy role-based access control. Implement input validation and anomaly detection. Harden infrastructure. Conduct adversarial penetration tests.</p></div></div>
+    <div class="phase"><div class="phase-num">P4</div><div><h4>Monitoring & Maintenance (Ongoing)</h4><p>Continuous monitoring for unusual query patterns. Regular security audits. Update defenses as new attack methods emerge. Incident response drills.</p></div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('14h',this,'s14')">🏥 Healthcare Security</button>
+    <button class="tab-btn" onclick="showTab('14f',this,'s14')">💳 Finance Security</button>
+  </div>
+  <div class="tab-content active" id="14h">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare</span><h3>AI-Powered Medical Imaging System</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Key Risk</span><span class="sc-val">Adversarial pixel changes to X-rays that fool the AI into misdiagnosing cancer as normal tissue — invisible to radiologists</span></div><div class="sc-row"><span class="sc-key">Access Control</span><span class="sc-val">Nurses: view recommendations only. Radiologists: view + annotate. Senior physicians: modify treatment plans. IT admins: model configuration. All with audit logs.</span></div><div class="sc-row"><span class="sc-key">HIPAA Requirement</span><span class="sc-val">All patient data access logged; role-based permissions enforced; data encrypted at rest and in transit; breach notification within 60 days</span></div><div class="sc-row"><span class="sc-key">Defense</span><span class="sc-val">Multiple AI models cross-validate results; anomaly detection flags unusual image inputs; human-in-the-loop required for all critical diagnoses</span></div></div></div>
+  </div>
+  <div class="tab-content" id="14f">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance</span><h3>AI Fraud Detection System</h3></div><div class="sc-body"><div class="sc-row"><span class="sc-key">Key Risk</span><span class="sc-val">Data poisoning: adversary injects mislabeled transactions into training data, teaching the fraud detector to approve certain fraud patterns</span></div><div class="sc-row"><span class="sc-key">Model Extraction Risk</span><span class="sc-val">A competitor could reverse-engineer your fraud model by making thousands of test transactions and observing which are flagged — rebuilding the model's decision logic</span></div><div class="sc-row"><span class="sc-key">Access Control</span><span class="sc-val">Fraud analysts: view flagged transactions. Team leads: override decisions (logged). Engineers: model retraining (audited). Rate limits on all external API queries.</span></div><div class="sc-row"><span class="sc-key">Regulatory</span><span class="sc-val">PCI DSS: cardholder data protection. SOX: audit trail requirements. FFIEC: cybersecurity assessment framework compliance</span></div></div></div>
+  </div>
+
+  <!-- 1.4 Q&A -->
+  <hr class="divider" style="margin:36px 0 28px">
+  <div class="section-tag c-red" style="margin-bottom:12px">Section 1.4 · Exam Questions</div>
+
+  <!-- Q15 -->
+  <div class="qblock" id="q15"><div class="qhead" onclick="toggleQ('q15')"><span class="qnum">Q 15</span><div class="qtext">A researcher adds tiny, invisible changes to X-ray images that cause an AI system to misclassify tumors as benign. These changes are undetectable to human radiologists. Which type of AI attack does this describe?</div><div class="qarrow">▾</div></div><ul class="opts" id="o15"><li class="opt" onclick="pickOpt(this,'o15',true)"><span class="ol">A</span>An adversarial attack, because subtle input manipulation causes the AI to produce incorrect outputs</li><li class="opt" onclick="pickOpt(this,'o15',false)"><span class="ol">B</span>A data poisoning attack, because training data is being corrupted</li><li class="opt" onclick="pickOpt(this,'o15',false)"><span class="ol">C</span>A model extraction attack, because the attacker is accessing the AI model</li><li class="opt" onclick="pickOpt(this,'o15',false)"><span class="ol">D</span>A privacy attack, because patient data is being accessed without consent</li></ul><div class="ans-block" id="a15"><div class="ans-label">✅ Correct Answer: A</div><div class="ans-text"><strong>Adversarial attacks</strong> manipulate input data at inference time (when the model is making predictions) — not during training. The key marker: changes are made to live inputs (the X-ray being analyzed), not to training data. Data poisoning (B) targets the training process, not live inputs. The book's exact example matches this scenario precisely.</div><div class="teacher-note">Exam distinction: Adversarial = attack on live inputs. Poisoning = attack on training data. Both are attacks, but at different stages of the AI lifecycle.</div></div></div>
+
+  <!-- Q16 -->
+  <div class="qblock" id="q16"><div class="qhead" onclick="toggleQ('q16')"><span class="qnum">Q 16</span><div class="qtext">A financial institution discovers that its AI fraud detection model has been approving certain fraud patterns that it used to catch. Investigation reveals that someone injected mislabeled examples into the training dataset. Which attack type occurred?</div><div class="qarrow">▾</div></div><ul class="opts" id="o16"><li class="opt" onclick="pickOpt(this,'o16',false)"><span class="ol">A</span>An adversarial attack</li><li class="opt" onclick="pickOpt(this,'o16',true)"><span class="ol">B</span>A data poisoning attack</li><li class="opt" onclick="pickOpt(this,'o16',false)"><span class="ol">C</span>A model extraction attack</li><li class="opt" onclick="pickOpt(this,'o16',false)"><span class="ol">D</span>A privacy attack</li></ul><div class="ans-block" id="a16"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text"><strong>Data poisoning</strong> specifically involves corrupting the <strong>training dataset</strong> so the AI learns wrong patterns. The attacker injected mislabeled fraud examples into training data — teaching the model that certain fraud patterns are legitimate. This is distinct from adversarial attacks, which manipulate live inputs after training. Defense: secure, audited training data pipelines with data provenance tracking.</div><div class="teacher-note">Key phrase for students: "If the attack happened BEFORE training → Data Poisoning. If it happened AFTER training on live inputs → Adversarial Attack."</div></div></div>
+
+  <!-- Q17 -->
+  <div class="qblock" id="q17"><div class="qhead" onclick="toggleQ('q17')"><span class="qnum">Q 17</span><div class="qtext">According to the AI Security Planning framework, which security principle states that each user should only have access to the minimum data and system functions required for their specific job role?</div><div class="qarrow">▾</div></div><ul class="opts" id="o17"><li class="opt" onclick="pickOpt(this,'o17',false)"><span class="ol">A</span>Zero-Trust Architecture</li><li class="opt" onclick="pickOpt(this,'o17',true)"><span class="ol">B</span>Principle of Least Privilege</li><li class="opt" onclick="pickOpt(this,'o17',false)"><span class="ol">C</span>Defense in Depth</li><li class="opt" onclick="pickOpt(this,'o17',false)"><span class="ol">D</span>Security by Obscurity</li></ul><div class="ans-block" id="a17"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The book describes this as: <em>"Give each person only the minimum access they need to do their job — nothing more."</em> A nurse might only need Level 2 (view AI recommendations). A senior physician needs Level 3 (modify treatment plans). A system admin needs Level 4 (configure the model). This limits the damage any single compromised account can cause.</div><div class="teacher-note">Real-world anchor: Most healthcare data breaches don't come from hackers — they come from employees accessing more data than their role requires. Least Privilege directly prevents this.</div></div></div>
+
+  <!-- Q18 -->
+  <div class="qblock" id="q18"><div class="qhead" onclick="toggleQ('q18')"><span class="qnum">Q 18</span><div class="qtext">The book states: "Security is not optional — it must be built in from the start, not added later." Which phase of the AI Security Planning framework addresses this by inventorying all AI assets and identifying threat vectors?</div><div class="qarrow">▾</div></div><ul class="opts" id="o18"><li class="opt" onclick="pickOpt(this,'o18',true)"><span class="ol">A</span>Phase 1: Assessment</li><li class="opt" onclick="pickOpt(this,'o18',false)"><span class="ol">B</span>Phase 2: Planning</li><li class="opt" onclick="pickOpt(this,'o18',false)"><span class="ol">C</span>Phase 3: Implementation</li><li class="opt" onclick="pickOpt(this,'o18',false)"><span class="ol">D</span>Phase 4: Monitoring</li></ul><div class="ans-block" id="a18"><div class="ans-label">✅ Correct Answer: A</div><div class="ans-text">Phase 1 (Assessment) is the foundation: inventory all AI assets, data sources, and infrastructure; identify all possible attack vectors; classify data sensitivity; map existing access permissions. This is what "building security in from the start" means operationally. Without this inventory, you cannot plan, implement, or monitor effectively.</div><div class="teacher-note">Security phases follow a logical order that students sometimes mix up. Teach it as: "You can't protect what you haven't identified. Assessment always comes first."</div></div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1.5
+═══════════════════════════════════════════════ -->
+<div class="section-wrap" id="s15">
+  <div class="section-head">
+    <div class="section-tag c-orange">Section 1.5</div>
+    <div class="section-title">AI Ethics & Responsible AI Implementation</div>
+    <div class="section-sub">Why Ethics Matters · Core Components · Real Failures · Guidelines · Preventing Harm</div>
+  </div>
+
+  <div class="analogy" style="border-left-color:var(--orange)">
+    <div class="alabel c-orange">🌍 Opening Story</div>
+    <p><strong>Imagine a world where AI systems make decisions that affect millions of people daily</strong> — who gets a loan, who gets hired, who gets medical care. This is happening right now. And when those systems go wrong, real people pay real prices.<br><br>
+    Amazon built an AI to screen resumes. It was technically brilliant. But it learned from 10 years of hiring data, during which the company had hired mostly men. The AI learned: <em>"resumes that look like past hires = good."</em> It began downgrading resumes that contained the word "women's." Amazon scrapped it entirely.<br><br>
+    <strong>AI ethics isn't about being "nice." It's about ensuring that AI systems work fairly for everyone and don't cause real harm to people's lives.</strong></p>
+  </div>
+
+  <div class="pillar-grid">
+    <div class="pillar"><div class="pi-icon">⚖️</div><h4>Fairness</h4><p>AI decisions must not discriminate based on race, gender, age, or other protected characteristics. Equal treatment doesn't always mean fair treatment.</p></div>
+    <div class="pillar"><div class="pi-icon">🔍</div><h4>Transparency</h4><p>People affected by AI decisions should be able to understand how those decisions were made. "Black box" systems that can't be explained raise serious ethical concerns.</p></div>
+    <div class="pillar"><div class="pi-icon">🎯</div><h4>Accountability</h4><p>Someone must be responsible for the AI's decisions and their consequences. "The algorithm decided" is not an acceptable answer when harm occurs.</p></div>
+    <div class="pillar"><div class="pi-icon">🌱</div><h4>Beneficence</h4><p>AI should genuinely benefit the people it affects — not just the organization deploying it. The goal is technology that improves lives equitably.</p></div>
+    <div class="pillar"><div class="pi-icon">🚫</div><h4>Non-Maleficence</h4><p>AI should not cause harm, even unintentionally. This includes indirect harm through biased decisions, privacy violations, or misuse of outputs.</p></div>
+    <div class="pillar"><div class="pi-icon">🔒</div><h4>Privacy</h4><p>Individuals have the right to control their personal data. AI systems must be designed to protect privacy, not exploit it.</p></div>
+  </div>
+
+  <!-- Real failures table -->
+  <div class="section-tag c-orange" style="margin-bottom:14px;margin-top:8px">Real-World Ethics Failures</div>
+  <table class="fail-table">
+    <thead><tr><th>Case</th><th>What Happened</th><th>Ethical Failure</th><th>Lesson</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Amazon Hiring AI (2018)</strong></td><td>AI trained on 10 years of hiring data systematically downgraded resumes mentioning "women's" organizations</td><td>Historical bias in training data → perpetuated discrimination</td><td>Data reflects past inequality; AI amplifies it unless corrected</td></tr>
+      <tr><td><strong>Healthcare Triage Bias</strong></td><td>AI trained on data from wealthy, insured patients consistently underestimated urgency for underinsured patients</td><td>Non-representative training data → unequal care quality</td><td>Who your training data includes determines who your AI serves fairly</td></tr>
+      <tr><td><strong>Loan Denial by ZIP Code</strong></td><td>AI used ZIP code as a feature, which correlates strongly with race — creating illegal proxy discrimination</td><td>Proxy variable bias — statistically neutral but practically discriminatory</td><td>Features that seem neutral can mask protected characteristics</td></tr>
+      <tr><td><strong>Recidivism Prediction (COMPAS)</strong></td><td>AI predicting likelihood of reoffending showed significant racial bias in error rates</td><td>Feedback loop bias — historical criminal justice data reflected systemic racial disparities</td><td>AI trained on biased outcomes reproduces and legitimizes those biases</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('15h',this,'s15')">🏥 Healthcare Ethics</button>
+    <button class="tab-btn" onclick="showTab('15f',this,'s15')">💳 Finance Ethics</button>
+    <button class="tab-btn" onclick="showTab('15g',this,'s15')">📋 Implementation Guidelines</button>
+  </div>
+  <div class="tab-content active" id="15h">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-h">Healthcare</span><h3>Ethical AI for Medical Diagnosis</h3></div><div class="sc-body">
+      <div class="sc-row"><span class="sc-key">Fairness</span><span class="sc-val">AI diagnosing skin cancer must be trained on images from all skin tones. Early systems trained only on lighter skin tones missed cancers in darker-skinned patients</span></div>
+      <div class="sc-row"><span class="sc-key">Transparency</span><span class="sc-val">Choose algorithms that can explain their reasoning to doctors — even if a slightly less accurate "black box" model exists. Doctors must be able to review and override AI recommendations</span></div>
+      <div class="sc-row"><span class="sc-key">Accountability</span><span class="sc-val">The physician remains medically and legally responsible for every treatment decision — the AI is a decision support tool, not a replacement for clinical judgment</span></div>
+      <div class="sc-row"><span class="sc-key">Privacy</span><span class="sc-val">HIPAA mandates strict protections. Patient data used to train AI must be de-identified, and patients must consent to data use in AI development</span></div>
+    </div></div>
+  </div>
+  <div class="tab-content" id="15f">
+    <div class="sc-card"><div class="sc-head"><span class="badge badge-f">Finance</span><h3>Ethical AI for Credit and Loans</h3></div><div class="sc-body">
+      <div class="sc-row"><span class="sc-key">Fairness</span><span class="sc-val">Credit AI must not deny loans to qualified applicants based on ZIP code (proxy for race), gender-correlated features, or names associated with ethnic groups</span></div>
+      <div class="sc-row"><span class="sc-key">Transparency</span><span class="sc-val">Fair Credit Reporting Act requires that denied applicants receive a specific, human-understandable explanation for the decision — not just "the model said no"</span></div>
+      <div class="sc-row"><span class="sc-key">Out-of-Context Risk</span><span class="sc-val">An AI trained to screen software engineers must NOT be used to screen sales candidates — the skills and success patterns are completely different. Context-specific models prevent inappropriate cross-use</span></div>
+      <div class="sc-row"><span class="sc-key">Inclusion</span><span class="sc-val">AI financial advice should work for customers with $1,000 in savings — not just investment strategies for the wealthy. Equitable design is an ethics requirement, not a feature</span></div>
+    </div></div>
+  </div>
+  <div class="tab-content" id="15g">
+    <div class="two-col">
+      <div class="list-block"><h4>📊 Data Gathering Guidelines</h4>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Ensure training data represents all people the AI will affect — not just the majority</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Don't use data from only one hospital, region, or demographic</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Regularly test for statistical bias across demographic groups</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Document where data came from and what populations it represents</span></div>
+      </div>
+      <div class="list-block"><h4>🚫 Preventing Out-of-Context Use</h4>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>An AI designed for one job role should never be applied to a different role without revalidation</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Document the intended use case and prohibit unauthorized applications</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Regularly audit whether the AI is being used for its intended purpose</span></div>
+        <div class="list-item"><div class="dot" style="background:var(--orange)"></div><span>Provide clear explanations to users of what the AI can and cannot appropriately decide</span></div>
+      </div>
+    </div>
+    <div class="phases" style="margin-bottom:0">
+      <div class="phase"><div class="phase-num" style="background:#fb923c20;border-color:#fb923c30;color:var(--orange)">S1</div><div><h4>Pre-Development Assessment</h4><p>Who will this AI affect? Could it cause harm to vulnerable groups? What data will it use, and does that data fairly represent everyone?</p></div></div>
+      <div class="phase"><div class="phase-num" style="background:#fb923c20;border-color:#fb923c30;color:var(--orange)">S2</div><div><h4>During Development</h4><p>Test for bias across demographic groups at every stage. Choose explainable algorithms where human oversight is required. Document every data and design decision.</p></div></div>
+      <div class="phase"><div class="phase-num" style="background:#fb923c20;border-color:#fb923c30;color:var(--orange)">S3</div><div><h4>Before Deployment</h4><p>External ethics review. Legal compliance check. Simulate edge cases and vulnerable group scenarios. Define the escalation path when the AI is wrong.</p></div></div>
+      <div class="phase"><div class="phase-num" style="background:#fb923c20;border-color:#fb923c30;color:var(--orange)">S4</div><div><h4>Post-Deployment Monitoring</h4><p>Track performance across demographic groups continuously. Create clear appeal processes for affected individuals. Set triggers for retraining if bias patterns emerge.</p></div></div>
+    </div>
+  </div>
+
+  <!-- 1.5 Q&A -->
+  <hr class="divider" style="margin:36px 0 28px">
+  <div class="section-tag c-orange" style="margin-bottom:12px">Section 1.5 · Exam Questions</div>
+
+  <!-- Q19 -->
+  <div class="qblock" id="q19"><div class="qhead" onclick="toggleQ('q19')"><span class="qnum">Q 19</span><div class="qtext">Amazon built an AI resume screening system trained on 10 years of hiring data. The system began downgrading resumes containing the word "women's." Which type of AI bias does this BEST illustrate?</div><div class="qarrow">▾</div></div><ul class="opts" id="o19"><li class="opt" onclick="pickOpt(this,'o19',false)"><span class="ol">A</span>Adversarial bias, because an attacker manipulated the input data</li><li class="opt" onclick="pickOpt(this,'o19',true)"><span class="ol">B</span>Historical bias in training data, because the AI learned and perpetuated past discriminatory hiring patterns</li><li class="opt" onclick="pickOpt(this,'o19',false)"><span class="ol">C</span>Model extraction bias, because competitors accessed the hiring model</li><li class="opt" onclick="pickOpt(this,'o19',false)"><span class="ol">D</span>Implementation bias, because the deployment team made errors</li></ul><div class="ans-block" id="a19"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The book describes this directly: <em>"The historical data shows that the company previously hired mostly men. The AI learns this pattern and starts automatically ranking men higher."</em> No attacker was involved — the AI correctly learned from its training data. The data itself encoded historical discrimination, and the AI amplified it. This is the most common and insidious form of AI bias.</div><div class="teacher-note">Key insight: The AI was doing exactly what it was designed to do — learn patterns from data. The ethical failure happened at the data selection and problem definition stage, not the algorithm stage.</div></div></div>
+
+  <!-- Q20 -->
+  <div class="qblock" id="q20"><div class="qhead" onclick="toggleQ('q20')"><span class="qnum">Q 20</span><div class="qtext">A hospital's AI diagnostic system was trained primarily on data from wealthy, insured urban patients. When deployed in a diverse community hospital, it consistently underestimates urgency for underinsured patients. Which ethical principle is MOST violated?</div><div class="qarrow">▾</div></div><ul class="opts" id="o20"><li class="opt" onclick="pickOpt(this,'o20',true)"><span class="ol">A</span>Fairness, because the AI produces inequitable outcomes for different patient populations</li><li class="opt" onclick="pickOpt(this,'o20',false)"><span class="ol">B</span>Transparency, because the AI cannot explain its decisions</li><li class="opt" onclick="pickOpt(this,'o20',false)"><span class="ol">C</span>Privacy, because patient data is being misused</li><li class="opt" onclick="pickOpt(this,'o20',false)"><span class="ol">D</span>Accountability, because no one reviewed the AI's decisions</li></ul><div class="ans-block" id="a20"><div class="ans-label">✅ Correct Answer: A</div><div class="ans-text"><strong>Fairness</strong> — the AI produces systematically worse outcomes for underinsured patients than for insured patients, based solely on who was represented in the training data. The book calls this a violation of equitable care: <em>"Patients who need urgent care are deprioritized, potentially leading to worse health outcomes."</em> The fix: ensure training data represents the full spectrum of patients the AI will encounter.</div><div class="teacher-note">Connect to Section 1.3: this is also an expertise failure — domain experts (diverse clinicians) were not consulted during data selection, which is exactly Mistake #2 from the expertise section.</div></div></div>
+
+  <!-- Q21 -->
+  <div class="qblock" id="q21"><div class="qhead" onclick="toggleQ('q21')"><span class="qnum">Q 21</span><div class="qtext">A credit scoring AI uses ZIP code as one of its input features. A fairness audit reveals that in practice, applicants from certain ZIP codes — which correlate highly with racial demographics — are being denied loans at much higher rates. This is an example of which ethical issue?</div><div class="qarrow">▾</div></div><ul class="opts" id="o21"><li class="opt" onclick="pickOpt(this,'o21',false)"><span class="ol">A</span>Data poisoning, because the training data was corrupted</li><li class="opt" onclick="pickOpt(this,'o21',true)"><span class="ol">B</span>Proxy variable discrimination, because a seemingly neutral feature encodes a protected characteristic</li><li class="opt" onclick="pickOpt(this,'o21',false)"><span class="ol">C</span>Model extraction, because the credit model is being reverse-engineered</li><li class="opt" onclick="pickOpt(this,'o21',false)"><span class="ol">D</span>Adversarial attack, because applicants are manipulating their ZIP codes</li></ul><div class="ans-block" id="a21"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text"><strong>Proxy variable discrimination</strong> occurs when a feature that appears statistically neutral (ZIP code) actually acts as a stand-in for a protected characteristic (race/ethnicity). The AI isn't explicitly using race — but it achieves the same discriminatory outcome because of the correlation. This violates the Equal Credit Opportunity Act and is one of the most common and legally dangerous ethics issues in financial AI.</div><div class="teacher-note">Important legal note: Intent doesn't matter in discrimination law. If the outcome is discriminatory — even due to a proxy — it can be illegal. This is why fairness audits are mandatory in financial AI.</div></div></div>
+
+  <!-- Q22 -->
+  <div class="qblock" id="q22"><div class="qhead" onclick="toggleQ('q22')"><span class="qnum">Q 22</span><div class="qtext">According to the book's Responsible AI guidelines, when choosing between a highly accurate "black box" algorithm and a slightly less accurate algorithm that can explain its reasoning, which should a medical AI system use and why?</div><div class="qarrow">▾</div></div><ul class="opts" id="o22"><li class="opt" onclick="pickOpt(this,'o22',false)"><span class="ol">A</span>The black box algorithm, because accuracy is always the top priority in healthcare</li><li class="opt" onclick="pickOpt(this,'o22',true)"><span class="ol">B</span>The explainable algorithm, because doctors must be able to review, understand, and override AI recommendations</li><li class="opt" onclick="pickOpt(this,'o22',false)"><span class="ol">C</span>The black box algorithm, because patients don't need to understand AI decisions</li><li class="opt" onclick="pickOpt(this,'o22',false)"><span class="ol">D</span>Either is acceptable, because both produce good outcomes</li></ul><div class="ans-block" id="a22"><div class="ans-label">✅ Correct Answer: B</div><div class="ans-text">The book states: <em>"For a medical diagnosis AI, choose an algorithm that can explain its reasoning to doctors, even if a more complex 'black box' algorithm might be slightly more accurate."</em> In high-stakes domains like healthcare, <strong>transparency and human oversight are more important than marginal accuracy gains</strong>. Doctors must be able to understand, evaluate, and override AI recommendations — they remain legally and medically responsible for every decision.</div><div class="teacher-note">This is a values question disguised as a technical question. Train students to recognize when ethics principles (transparency, accountability) override pure performance metrics.</div></div></div>
+
+  <!-- Q23 -->
+  <div class="qblock" id="q23"><div class="qhead" onclick="toggleQ('q23')"><span class="qnum">Q 23</span><div class="qtext">A company builds an AI system to assess software engineers' technical skills. The HR department wants to also use it to screen customer service candidates. According to the book's Responsible AI guidelines, why is this problematic?</div><div class="qarrow">▾</div></div><ul class="opts" id="o23"><li class="opt" onclick="pickOpt(this,'o23',false)"><span class="ol">A</span>Using AI for customer service screening is illegal under data privacy laws</li><li class="opt" onclick="pickOpt(this,'o23',false)"><span class="ol">B</span>The AI would need to be retrained with more data before it could be used for any purpose</li><li class="opt" onclick="pickOpt(this,'o23',true)"><span class="ol">C</span>The skills and success patterns for software engineers are different from those for customer service roles, making the AI's learned patterns irrelevant and potentially harmful in the new context</li><li class="opt" onclick="pickOpt(this,'o23',false)"><span class="ol">D</span>Customer service roles don't generate enough data for AI screening</li></ul><div class="ans-block" id="a23"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text">The book explicitly warns against <strong>out-of-context use</strong>: <em>"An AI system designed to screen resumes for software engineering positions shouldn't be used to screen candidates for sales positions, as the skills and requirements are completely different."</em> The AI learned what makes a successful software engineer. That pattern does not transfer to customer service — applying it would unfairly penalize perfectly qualified candidates.</div><div class="teacher-note">This is a governance and ethics failure that happens most often after a successful AI deployment — teams expand use cases beyond the original scope without revalidating. Build this awareness explicitly.</div></div></div>
+
+  <!-- Q24 -->
+  <div class="qblock" id="q24"><div class="qhead" onclick="toggleQ('q24')"><span class="qnum">Q 24</span><div class="qtext">The book states that when a loan application is denied by an AI, the applicant has a right to know why. Which ethical principle does this MOST directly reflect?</div><div class="qarrow">▾</div></div><ul class="opts" id="o24"><li class="opt" onclick="pickOpt(this,'o24',false)"><span class="ol">A</span>Non-maleficence</li><li class="opt" onclick="pickOpt(this,'o24',false)"><span class="ol">B</span>Fairness</li><li class="opt" onclick="pickOpt(this,'o24',true)"><span class="ol">C</span>Transparency</li><li class="opt" onclick="pickOpt(this,'o24',false)"><span class="ol">D</span>Beneficence</li></ul><div class="ans-block" id="a24"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text"><strong>Transparency</strong> — the principle that people affected by AI decisions should be able to understand how those decisions were made. The Fair Credit Reporting Act in the US requires that denied applicants receive a specific human-understandable explanation. "The algorithm said no" violates both the ethical principle of transparency and the legal requirement for explainability in financial decisions.</div><div class="teacher-note">Connect to the Certiport exam theme: ethics principles map to real laws. Transparency → FCRA, GDPR right to explanation. Fairness → Equal Credit Opportunity Act. Privacy → HIPAA, GDPR. Students should know these connections.</div></div></div>
+
+  <!-- Q25 -->
+  <div class="qblock" id="q25"><div class="qhead" onclick="toggleQ('q25')"><span class="qnum">Q 25</span><div class="qtext">Which of the following BEST describes a "feedback loop bias" in AI systems?</div><div class="qarrow">▾</div></div><ul class="opts" id="o25"><li class="opt" onclick="pickOpt(this,'o25',false)"><span class="ol">A</span>When an AI system learns more slowly because of poor-quality feedback data</li><li class="opt" onclick="pickOpt(this,'o25',false)"><span class="ol">B</span>When users deliberately provide incorrect feedback to manipulate the AI</li><li class="opt" onclick="pickOpt(this,'o25',true)"><span class="ol">C</span>When AI decisions create conditions that reinforce the original bias — the AI's outputs become the next generation's training data</li><li class="opt" onclick="pickOpt(this,'o25',false)"><span class="ol">D</span>When AI accuracy degrades over time due to outdated training data</li></ul><div class="ans-block" id="a25"><div class="ans-label">✅ Correct Answer: C</div><div class="ans-text">The book defines this as: <em>"When AI decisions create conditions that reinforce the original bias."</em> Example: an AI denies loans to certain neighborhoods → those neighborhoods have lower economic activity → that data is used to retrain the model → the model learns those neighborhoods are higher risk → denies even more loans. The AI's own decisions become the evidence for its future decisions, compounding the original bias exponentially.</div><div class="teacher-note">This is the most sophisticated bias concept in Chapter 1 and typically appears in more advanced exam questions. Anchor it with the COMPAS recidivism example: AI predicts reoffending → person is incarcerated longer → more likely to encounter criminal justice system → confirms the prediction.</div></div></div>
+</div>
+
+<!-- PAGE FOOTER -->
+<div class="page-footer">
+  <p>📘 <strong>Reference:</strong> Artificial Intelligence Deep Dive · Santosh Srinivasaiah · ITS OD 307 · 2025</p>
+  <p><strong>Chapter 1</strong> — AI Problem Definition · All 5 Sections · 25 Exam Questions</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// Progress bar
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;
+  document.getElementById('progress-bar').style.width=Math.min(pct,100)+'%';
+});
+
+// Nav active state
+const sections=['top','s11','s12','s13','s14','s15'];
+const navBtns=document.querySelectorAll('.nav-btn');
+window.addEventListener('scroll',()=>{
+  let cur='top';
+  sections.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.getBoundingClientRect().top<120)cur=id;
+  });
+  navBtns.forEach((b,i)=>{
+    b.classList.toggle('active',sections[i]===cur);
+  });
+});
+
+function scrollTo(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
+
+// Tabs — scoped to section
+function showTab(id,btn,section){
+  const sec=document.getElementById(section);
+  sec.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  sec.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Q&A
+function toggleQ(id){
+  const b=document.getElementById(id);
+  const opts=b.querySelector('.opts');
+  const ans=b.querySelector('.ans-block');
+  const isOpen=b.classList.contains('open');
+  // close all
+  document.querySelectorAll('.qblock').forEach(q=>{q.classList.remove('open');q.querySelector('.opts').style.display='none';q.querySelector('.ans-block').classList.remove('show');});
+  if(!isOpen){
+    b.classList.add('open');
+    opts.style.display='block';
+  }
+}
+
+function pickOpt(el,optId,correct){
+  const opts=document.getElementById(optId);
+  opts.querySelectorAll('.opt').forEach(o=>o.classList.remove('correct','wrong','show-correct'));
+  if(correct){
+    el.classList.add('correct');
+  } else {
+    el.classList.add('wrong');
+    opts.querySelectorAll('.opt').forEach(o=>{
+      if(o.getAttribute('onclick')&&o.getAttribute('onclick').includes(',true)'))o.classList.add('show-correct');
+    });
+  }
+  // Show answer
+  const qblock=el.closest('.qblock');
+  qblock.querySelector('.ans-block').classList.add('show');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 2 — Data Collection, Processing & Engineering | AI Deep Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f5f4ef;
+    --surface: #ffffff;
+    --border: #ddd9d0;
+    --text: #1a1a1a;
+    --muted: #6b6860;
+    --s1: #1e6b4a;   /* green — 2.1 */
+    --s1-lt: #e8f5ee;
+    --s2: #1a4f8a;   /* blue — 2.2 */
+    --s2-lt: #e8f0fb;
+    --s3: #7c3d8f;   /* purple — 2.3 */
+    --s3-lt: #f5edfb;
+    --s4: #b84d00;   /* orange — 2.4 */
+    --s4-lt: #fef2e8;
+    --s5: #b0001f;   /* red — 2.5 */
+    --s5-lt: #fdecea;
+    --exam: #2d4a22;
+    --exam-lt: #edf5e8;
+    --correct: #1e6b4a;
+    --wrong: #b0001f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── TOP BANNER ── */
+  .banner {
+    background: #111;
+    color: #fff;
+    text-align: center;
+    padding: 20px 24px;
+  }
+  .banner .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #aaa;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .banner h1 {
+    font-size: clamp(20px, 4vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .banner .sub {
+    font-size: 13px;
+    color: #bbb;
+    margin-top: 4px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: #222;
+    height: 6px;
+  }
+  .progress-bar {
+    height: 6px;
+    background: linear-gradient(90deg, var(--s1), var(--s2), var(--s3), var(--s4), var(--s5));
+    width: 0;
+    transition: width 0.3s;
+  }
+
+  /* ── STICKY NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding-right: 10px;
+    border-right: 1px solid var(--border);
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    flex-shrink: 0;
+    text-decoration: none;
+    padding: 14px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.s1 { border-color: var(--s1); color: var(--s1); }
+  .nav-btn.s2 { border-color: var(--s2); color: var(--s2); }
+  .nav-btn.s3 { border-color: var(--s3); color: var(--s3); }
+  .nav-btn.s4 { border-color: var(--s4); color: var(--s4); }
+  .nav-btn.s5 { border-color: var(--s5); color: var(--s5); }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding: 24px 28px;
+    border-radius: 4px;
+    border-left: 6px solid;
+  }
+  .section-header.s1 { background: var(--s1-lt); border-color: var(--s1); }
+  .section-header.s2 { background: var(--s2-lt); border-color: var(--s2); }
+  .section-header.s3 { background: var(--s3-lt); border-color: var(--s3); }
+  .section-header.s4 { background: var(--s4-lt); border-color: var(--s4); }
+  .section-header.s5 { background: var(--s5-lt); border-color: var(--s5); }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .section-header .tagline {
+    font-size: 13px;
+    opacity: 0.75;
+    font-style: italic;
+  }
+
+  /* ── CONTENT BLOCKS ── */
+  .section-body { margin-bottom: 60px; }
+
+  h3.block-title {
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 32px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  p { margin-bottom: 12px; color: #333; }
+
+  /* ── CONCEPT GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 16px;
+  }
+  .card .card-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .card .card-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  .card .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .card.accent-s1 { border-top: 3px solid var(--s1); }
+  .card.accent-s2 { border-top: 3px solid var(--s2); }
+  .card.accent-s3 { border-top: 3px solid var(--s3); }
+  .card.accent-s4 { border-top: 3px solid var(--s4); }
+  .card.accent-s5 { border-top: 3px solid var(--s5); }
+
+  /* ── TABS ── */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    color: var(--muted);
+    margin-bottom: -2px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { color: var(--text); }
+  .tab-btn.active.s1 { border-bottom-color: var(--s1); color: var(--s1); }
+  .tab-btn.active.s2 { border-bottom-color: var(--s2); color: var(--s2); }
+  .tab-btn.active.s3 { border-bottom-color: var(--s3); color: var(--s3); }
+  .tab-btn.active.s4 { border-bottom-color: var(--s4); color: var(--s4); }
+  .tab-btn.active.s5 { border-bottom-color: var(--s5); color: var(--s5); }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── SCENARIO BLOCK ── */
+  .scenario {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    font-size: 14px;
+  }
+  .scenario .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 10px;
+    opacity: 0.7;
+  }
+  .scenario h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .scenario ul { padding-left: 18px; }
+  .scenario li { margin-bottom: 5px; }
+
+  /* ── COMPARISON TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    font-size: 13.5px;
+    background: var(--surface);
+  }
+  th {
+    background: #111;
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafaf8; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 4px solid;
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 14px;
+  }
+  .callout.s1 { background: var(--s1-lt); border-color: var(--s1); }
+  .callout.s2 { background: var(--s2-lt); border-color: var(--s2); }
+  .callout.s3 { background: var(--s3-lt); border-color: var(--s3); }
+  .callout.s4 { background: var(--s4-lt); border-color: var(--s4); }
+  .callout.s5 { background: var(--s5-lt); border-color: var(--s5); }
+  .callout strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── STEPS ── */
+  .steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+  .step-num {
+    counter-increment: step;
+    content: counter(step);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .step-num.s1 { background: var(--s1); }
+  .step-num.s2 { background: var(--s2); }
+  .step-num.s3 { background: var(--s3); }
+  .step-num.s4 { background: var(--s4); }
+  .step-num.s5 { background: var(--s5); }
+  .step-body .step-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+  .step-body .step-desc { font-size: 13px; color: var(--muted); }
+
+  /* ── EXAM QUESTIONS ── */
+  .exam-section {
+    background: var(--exam-lt);
+    border: 2px solid #b5cfaa;
+    border-radius: 6px;
+    padding: 24px;
+    margin-top: 40px;
+  }
+  .exam-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .exam-badge {
+    background: var(--exam);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 3px;
+  }
+  .exam-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--exam);
+  }
+
+  .question { margin-bottom: 22px; }
+  .question .q-text {
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #1a1a1a;
+  }
+  .options { display: flex; flex-direction: column; gap: 6px; }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 12px;
+    background: #fff;
+    border: 1.5px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: all 0.15s;
+    text-align: left;
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.45;
+    width: 100%;
+  }
+  .option:hover { border-color: var(--exam); background: #f7faf4; }
+  .option .opt-letter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    width: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .option.correct { background: #e8f5ee; border-color: var(--correct); color: var(--correct); }
+  .option.wrong   { background: #fdecea; border-color: var(--wrong);   color: var(--wrong);   }
+  .option.reveal-correct { background: #e8f5ee; border-color: var(--correct); }
+
+  .reveal-btn {
+    margin-top: 8px;
+    padding: 7px 16px;
+    background: var(--exam);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    letter-spacing: 0.5px;
+  }
+  .reveal-btn:hover { background: #1e3a14; }
+  .reveal-btn:disabled { background: #888; cursor: default; }
+
+  .answer-block {
+    display: none;
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #b5cfaa;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .answer-block.show { display: block; }
+  .answer-block .correct-label {
+    font-weight: 700;
+    color: var(--correct);
+    margin-bottom: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .answer-block .explanation { color: #444; line-height: 1.5; }
+  .answer-block .teacher-note {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #fffbe8;
+    border-left: 3px solid #d4a017;
+    font-size: 12px;
+    color: #5a4500;
+  }
+  .answer-block .teacher-note strong { color: #8a6800; }
+
+  .question-divider { border: none; border-top: 1px dashed #ccc; margin: 18px 0; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-sep {
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    margin: 60px 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #111;
+    color: #888;
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     BANNER
+══════════════════════════════════════════ -->
+<div class="banner">
+  <div class="tag">ITS OD 307 · Artificial Intelligence Deep Dive</div>
+  <h1>Chapter 2 — Data Collection, Processing &amp; Engineering</h1>
+  <div class="sub">Sections 2.1 – 2.5 · Interactive Classroom Reference · Santosh Srinivasaiah</div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     STICKY NAV
+══════════════════════════════════════════ -->
+<nav>
+  <span class="nav-label">Jump to</span>
+  <a class="nav-btn s1" href="#s21">2.1 Data Collection</a>
+  <a class="nav-btn s2" href="#s22">2.2 Data Quality</a>
+  <a class="nav-btn s3" href="#s23">2.3 Representative Data</a>
+  <a class="nav-btn s4" href="#s24">2.4 Resource Assessment</a>
+  <a class="nav-btn s5" href="#s25">2.5 Data Conversion</a>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════ -->
+<div class="container">
+
+<!-- ─────────────────────────────
+     SECTION 2.1
+───────────────────────────── -->
+<div id="s21" class="section-body">
+  <div class="section-header s1">
+    <div class="section-num">2.1</div>
+    <div>
+      <h2>Data Collection for AI</h2>
+      <p class="tagline">"Garbage in, garbage out — the data you collect determines the AI you build."</p>
+    </div>
+  </div>
+
+  <p>Data is the raw material of every AI system. Before a model can learn anything, you need to decide <strong>what data to collect, how to collect it, and how to verify it is good enough</strong>. This section walks through the key decisions every AI project must make at the very start.</p>
+
+  <h3 class="block-title">Why Data Collection Matters</h3>
+  <div class="callout s1">
+    <strong>The Big Idea</strong>
+    Think of data collection like buying ingredients before cooking. If you walk into the kitchen with the wrong ingredients — or spoiled ones — no amount of cooking skill will save the meal. AI works the same way: the best algorithm on bad data still produces bad results.
+  </div>
+
+  <h3 class="block-title">Four Key Data Characteristics</h3>
+  <div class="grid">
+    <div class="card accent-s1">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Completeness</div>
+      <div class="card-desc">All required fields are present. Missing values create blind spots in the model.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">Accuracy</div>
+      <div class="card-desc">Values reflect reality. A blood pressure reading of 500/300 is impossible — flag it.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">Consistency</div>
+      <div class="card-desc">Same information stored the same way across all records and sources.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-icon">🕐</div>
+      <div class="card-title">Timeliness</div>
+      <div class="card-desc">Data is fresh enough for the task. Yesterday's stock price can't predict today's trade.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Existing Dataset vs. Building Your Own</h3>
+  <table>
+    <thead>
+      <tr><th>Approach</th><th>Best When</th><th>Watch Out For</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Use Existing Dataset</strong><br><small>(Kaggle, UCI, EHR databases)</small></td>
+        <td>You need to move fast; a public dataset covers your problem domain</td>
+        <td>Data may not match your exact context; potential licensing or privacy limits</td>
+      </tr>
+      <tr>
+        <td><strong>Build Custom Dataset</strong><br><small>(surveys, sensors, scraping)</small></td>
+        <td>No existing dataset fits; your problem is highly specific</td>
+        <td>Expensive, time-consuming; risk of collection bias if design is poor</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="block-title">Automated vs. Manual Collection</h3>
+  <div class="tab-nav">
+    <button class="tab-btn active s1" onclick="switchTab(this, 'auto-tab')">⚡ Automated</button>
+    <button class="tab-btn s1" onclick="switchTab(this, 'manual-tab')">🧑 Manual</button>
+  </div>
+  <div id="auto-tab" class="tab-pane active">
+    <div class="scenario">
+      <div class="label">Automated Collection</div>
+      <h4>Speed, Scale, and Consistency</h4>
+      <p>Automated tools — web scrapers, APIs, IoT sensors — collect data faster and more consistently than humans. They run 24/7 without fatigue.</p>
+      <ul>
+        <li><strong>Healthcare example:</strong> Vital-sign monitors that automatically log patient readings every 5 minutes into the EHR</li>
+        <li><strong>Finance example:</strong> APIs that pull real-time stock prices and trading volumes from exchanges</li>
+        <li><strong>Limitation:</strong> May collect irrelevant or low-quality data; requires technical setup and ongoing maintenance</li>
+      </ul>
+    </div>
+  </div>
+  <div id="manual-tab" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Manual Collection</div>
+      <h4>Quality, Context, and Nuance</h4>
+      <p>Humans add judgment that machines cannot. Radiologists labeling X-rays or analysts reviewing earnings reports provide <em>meaning</em> to raw images and text.</p>
+      <ul>
+        <li><strong>Healthcare example:</strong> Radiologists marking tumor regions in mammograms so a diagnostic AI can learn from expert annotations</li>
+        <li><strong>Finance example:</strong> Analysts categorizing whether a news article is positive, negative, or neutral for market sentiment analysis</li>
+        <li><strong>Limitation:</strong> Slow and expensive; subject to human error and annotator disagreement</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="block-title">Common Pitfalls</h3>
+  <div class="grid">
+    <div class="card accent-s1">
+      <div class="card-title">🪤 "More Data = Better AI"</div>
+      <div class="card-desc">Not true. 10,000 high-quality, relevant records often outperform 1,000,000 noisy, off-topic ones.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-title">⏳ "Perfect Data" Paralysis</div>
+      <div class="card-desc">Waiting until data is perfect before starting means never starting. Iterate and improve.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-title">🤖 "Automation Assumption"</div>
+      <div class="card-desc">Assuming automated collection is always better — sometimes a human analyst catches context that a scraper misses entirely.</div>
+    </div>
+  </div>
+
+  <!-- EXAM 2.1 -->
+  <div class="exam-section">
+    <div class="exam-header">
+      <span class="exam-badge">Exam Practice</span>
+      <h3>Section 2.1 — 5 Practice Questions</h3>
+    </div>
+
+    <div class="question">
+      <div class="q-text">1. A healthcare team wants to train an AI to predict patient readmission. They find a public hospital dataset but it only covers patients aged 18–45. What data collection problem does this represent?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Automation assumption error</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Lack of representativeness — the dataset does not cover all age groups relevant to the problem</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The "perfect data" paralysis trap</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Timeliness issue — the data is too old</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">A dataset limited to one age group cannot produce a model that works well for older or younger patients. This is a representativeness problem — the data does not reflect the full population the AI will serve.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> Distractor A targets confusion with automation errors. Distractor D tests whether students can distinguish representativeness from timeliness.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">2. Which TWO of the following are advantages of automated data collection over manual collection? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>It can operate continuously without fatigue</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>It provides better judgment for ambiguous or contextual data</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>It scales easily to handle larger data volumes</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>It eliminates the need for privacy or legal compliance review</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Automated systems never sleep (A) and handle large volumes consistently (C). They do NOT replace human judgment for nuanced data (B), and legal/privacy compliance is still required regardless of how data is collected (D).</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> B and D are common misconceptions. Emphasize that automation solves scale and consistency, not ethical or contextual challenges.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">3. A bank decides to use an existing credit-scoring dataset from a third party instead of collecting its own data. What is the MOST important risk to evaluate first?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The dataset may be too large to store</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>The dataset may not accurately represent the bank's own customer population</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The collection method may have been too slow</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The dataset was probably collected manually and is therefore unreliable</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Third-party datasets reflect someone else's customers, geography, and time period. The bank must verify the dataset matches its own customer profile before trusting predictions it generates.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D targets a common misconception that manual collection is inherently less reliable. Reinforce that collection method ≠ reliability.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">4. Which of the following best describes the "data hoarding" problem in AI projects?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Collecting data that is accurate but not recent</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Relying entirely on automated collection tools</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Collecting far more data than needed, much of which is irrelevant or unused</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Using data from only one source instead of multiple sources</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Data hoarding means collecting data "just in case" without a clear purpose. This wastes storage, increases costs, and can introduce privacy risks from holding unnecessary personal information.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> Connect this to Section 2.4 (resource costs). Storing unused data has real financial and compliance costs.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">5. A team is building an AI for diagnosing skin conditions. They plan to collect images. What should be the FIRST step in their data collection strategy?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Begin scraping images from the internet immediately</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Define the AI goal clearly and identify what types of images and labels are actually needed</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Select the machine learning algorithm before collecting any data</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Start with the largest dataset available regardless of relevance</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Strategy must precede action. Defining the goal first — what conditions to detect, what labels are needed, what patient populations to cover — prevents collecting the wrong data at scale.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> C is a common student error: algorithm selection comes AFTER understanding the data, not before. A is tempting but skips legal and quality considerations.</div>
+      </div>
+    </div>
+
+  </div><!-- end exam 2.1 -->
+</div><!-- end section 2.1 -->
+
+<div class="section-sep"></div>
+
+<!-- ─────────────────────────────
+     SECTION 2.2
+───────────────────────────── -->
+<div id="s22" class="section-body">
+  <div class="section-header s2">
+    <div class="section-num">2.2</div>
+    <div>
+      <h2>Data Quality Assessment</h2>
+      <p class="tagline">"Even the smartest detective will reach wrong conclusions with bad evidence."</p>
+    </div>
+  </div>
+
+  <p>Data quality assessment is the systematic process of examining data to understand its <strong>condition, reliability, and suitability</strong> for a specific AI task. Think of it as a health check-up for your data before you trust it to make real-world decisions.</p>
+
+  <h3 class="block-title">The 6 Dimensions of Data Quality</h3>
+  <div class="grid">
+    <div class="card accent-s2">
+      <div class="card-icon">📋</div>
+      <div class="card-title">1. Completeness</div>
+      <div class="card-desc">Are all required fields filled? Missing data = blind spots in your model.</div>
+    </div>
+    <div class="card accent-s2">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">2. Accuracy</div>
+      <div class="card-desc">Do values reflect real-world truth? A blood pressure of 500/300 is physiologically impossible.</div>
+    </div>
+    <div class="card accent-s2">
+      <div class="card-icon">🔁</div>
+      <div class="card-title">3. Consistency</div>
+      <div class="card-desc">Is the same concept recorded the same way everywhere? "Doctor" vs. "Dr." vs. "Physician" is a consistency problem.</div>
+    </div>
+    <div class="card accent-s2">
+      <div class="card-icon">📏</div>
+      <div class="card-title">4. Validity</div>
+      <div class="card-desc">Does data follow business rules? A date of "February 30" is syntactically present but logically invalid.</div>
+    </div>
+    <div class="card accent-s2">
+      <div class="card-icon">⏱️</div>
+      <div class="card-title">5. Timeliness</div>
+      <div class="card-desc">Is data fresh enough for the AI's purpose? 5-year-old housing prices cannot predict today's market.</div>
+    </div>
+    <div class="card accent-s2">
+      <div class="card-icon">🚫</div>
+      <div class="card-title">6. Uniqueness</div>
+      <div class="card-desc">Are there duplicate records? One patient appearing twice can distort model training.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Real-World Impact of Poor Data Quality</h3>
+  <div class="tab-nav">
+    <button class="tab-btn active s2" onclick="switchTab(this, 'q-health')">🏥 Healthcare</button>
+    <button class="tab-btn s2" onclick="switchTab(this, 'q-finance')">🏦 Finance</button>
+  </div>
+  <div id="q-health" class="tab-pane active">
+    <div class="scenario">
+      <div class="label">Healthcare Example</div>
+      <h4>Hospital Readmission Prediction</h4>
+      <p>A hospital uses EHR data to build a readmission risk model. Quality assessment reveals:</p>
+      <ul>
+        <li><strong>Completeness:</strong> 25% of records are missing discharge diagnosis codes</li>
+        <li><strong>Accuracy:</strong> Some vital signs show physiologically impossible readings</li>
+        <li><strong>Consistency:</strong> Different departments use different terminology for the same conditions</li>
+        <li><strong>Real-world impact:</strong> Medication errors due to poor data quality occur in ~15% of hospital admissions</li>
+      </ul>
+    </div>
+  </div>
+  <div id="q-finance" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Finance Example</div>
+      <h4>Customer Churn Prediction</h4>
+      <p>A bank builds a churn model from customer records. Quality issues found:</p>
+      <ul>
+        <li><strong>Completeness:</strong> 40% of customer records missing income data</li>
+        <li><strong>Consistency:</strong> Some records use account numbers, others use email, others use phone as primary ID</li>
+        <li><strong>Uniqueness:</strong> 8% of customers appear under two different IDs due to system merges</li>
+        <li><strong>Real-world impact:</strong> The model targets the wrong customers, wasting retention budget</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="block-title">8-Step Assessment Process</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num s2">1</div><div class="step-body"><div class="step-title">Initial Data Exploration</div><div class="step-desc">Profile the data: row count, column types, value ranges, and basic statistics.</div></div></div>
+    <div class="step"><div class="step-num s2">2</div><div class="step-body"><div class="step-title">Completeness Assessment</div><div class="step-desc">Identify and quantify missing values. Which fields are critical vs. optional?</div></div></div>
+    <div class="step"><div class="step-num s2">3</div><div class="step-body"><div class="step-title">Accuracy Verification</div><div class="step-desc">Cross-check values against known ranges, external sources, or domain rules.</div></div></div>
+    <div class="step"><div class="step-num s2">4</div><div class="step-body"><div class="step-title">Consistency Analysis</div><div class="step-desc">Look for the same entity described differently across records or tables.</div></div></div>
+    <div class="step"><div class="step-num s2">5</div><div class="step-body"><div class="step-title">Validity Checking</div><div class="step-desc">Apply business rules: Are all dates valid? Are all amounts positive? Are all codes in approved lists?</div></div></div>
+    <div class="step"><div class="step-num s2">6</div><div class="step-body"><div class="step-title">Timeliness Evaluation</div><div class="step-desc">Assess how recent the data is relative to the AI's purpose.</div></div></div>
+    <div class="step"><div class="step-num s2">7</div><div class="step-body"><div class="step-title">Uniqueness Analysis</div><div class="step-desc">Detect and resolve duplicate records that could skew model training.</div></div></div>
+    <div class="step"><div class="step-num s2">8</div><div class="step-body"><div class="step-title">Relevance Assessment</div><div class="step-desc">Does this data actually contain the information needed to solve the stated problem?</div></div></div>
+  </div>
+
+  <!-- EXAM 2.2 -->
+  <div class="exam-section">
+    <div class="exam-header">
+      <span class="exam-badge">Exam Practice</span>
+      <h3>Section 2.2 — 5 Practice Questions</h3>
+    </div>
+
+    <div class="question">
+      <div class="q-text">6. A dataset contains a patient record showing a birth date of "February 30, 1985." Which data quality dimension does this violate?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Timeliness</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Completeness</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Validity</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Uniqueness</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Validity means values follow real-world business or logic rules. February 30 is not a real date. The field is present (not a completeness issue) and not a duplicate (not uniqueness) — it's logically invalid.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> Students often confuse validity with accuracy. Accuracy = does this reflect reality? Validity = does this follow a defined rule or constraint?</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">7. Which TWO actions are most important during a data quality assessment? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>Identifying missing values and quantifying how many records are affected</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Selecting the machine learning algorithm to use before examining the data</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Cross-verifying data values against known ranges or external reference sources</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Maximizing the size of the dataset by adding any available records</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Quality assessment must quantify completeness (A) and verify accuracy through cross-validation (C). Algorithm selection (B) comes after quality assessment, and indiscriminately adding records (D) can introduce more quality problems.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is the "more data always better" trap from Section 2.1. Use this as a cross-section connection point.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">8. In a hospital database, the same medication "Acetaminophen" is stored as "acetaminophen," "Tylenol," and "APAP" across different departments. Which quality dimension is violated?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Completeness</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Consistency</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Timeliness</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Accuracy</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Consistency means the same concept is represented the same way throughout the dataset. All three names refer to the same drug, but an AI cannot know that without consistent encoding.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a common trap — students assume multiple names means inaccuracy. Emphasize: all three names are factually correct; the problem is inconsistent representation.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">9. A financial firm uses 5-year-old customer transaction data to train a fraud detection model. Which data quality issue is most likely to affect model performance?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Uniqueness — duplicate transactions in the dataset</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Timeliness — fraud patterns have likely changed significantly in 5 years</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Completeness — too many missing transaction amounts</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Validity — transaction dates fall outside accepted ranges</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Fraud techniques evolve rapidly. A model trained on 5-year-old patterns may not recognize modern fraud methods, even if the historical data is complete and accurate.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> Use this to introduce the concept of model drift in Section 4/5. Timeliness in training data directly feeds into why models degrade over time.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">10. What is the PRIMARY purpose of setting up automated quality monitoring in a data pipeline?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>To replace the need for human data analysts entirely</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>To speed up model training by pre-processing data faster</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>To catch quality problems early before they propagate into model predictions</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>To reduce the size of the dataset by removing records automatically</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Automated quality gates catch problems (missing values, outliers, format violations) at the point of entry, preventing bad data from reaching the AI model and corrupting its predictions.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A is a common AI-anxiety misconception. Emphasize that automation augments human oversight, it does not replace it.</div>
+      </div>
+    </div>
+
+  </div><!-- end exam 2.2 -->
+</div><!-- end section 2.2 -->
+
+<div class="section-sep"></div>
+
+<!-- ─────────────────────────────
+     SECTION 2.3
+───────────────────────────── -->
+<div id="s23" class="section-body">
+  <div class="section-header s3">
+    <div class="section-num">2.3</div>
+    <div>
+      <h2>Ensuring Representative Data in AI</h2>
+      <p class="tagline">"If you only teach a child about cats, they'll call every dog a 'strange cat.'"</p>
+    </div>
+  </div>
+
+  <p>Representative data means the dataset accurately reflects the <strong>full diversity of real-world situations</strong> the AI will encounter. Non-representative data produces AI systems that work well for some groups and fail — sometimes harmfully — for others.</p>
+
+  <h3 class="block-title">The Three Pillars of Representative Data</h3>
+  <div class="grid">
+    <div class="card accent-s3">
+      <div class="card-icon">🌍</div>
+      <div class="card-title">Coverage</div>
+      <div class="card-desc">The dataset includes all relevant subgroups: age groups, genders, ethnicities, income brackets, geographic regions.</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">⚖️</div>
+      <div class="card-title">Balance</div>
+      <div class="card-desc">Subgroups are proportionally represented. An 80/20 imbalance in training data means the model is optimized for the majority.</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">Relevance</div>
+      <div class="card-desc">Data reflects conditions at the time and place the AI will actually be used — not just where it was collected.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Types of Collection Bias</h3>
+  <table>
+    <thead>
+      <tr><th>Bias Type</th><th>What Happens</th><th>Real-World Example</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Sampling Bias</strong></td>
+        <td>Only certain groups are included in data collection</td>
+        <td>Training a skin cancer AI only on light-skinned patients — it fails on darker skin tones</td>
+      </tr>
+      <tr>
+        <td><strong>Historical Bias</strong></td>
+        <td>Past data reflects past discrimination, which the AI then perpetuates</td>
+        <td>Using historical loan approvals (which denied minorities more often) to train a new credit model</td>
+      </tr>
+      <tr>
+        <td><strong>Measurement Bias</strong></td>
+        <td>Data is collected differently for different groups</td>
+        <td>Hospital data over-represents insured patients; uninsured patients' outcomes are missing</td>
+      </tr>
+      <tr>
+        <td><strong>Feedback Loop Bias</strong></td>
+        <td>The AI's decisions create new data that reinforces the original bias</td>
+        <td>Predictive policing sends more officers to certain areas → more arrests there → model "confirms" those areas are high crime</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout s3">
+    <strong>Why This Is an Ethics Issue, Not Just a Technical One</strong>
+    When AI systems fail disproportionately for underrepresented groups — denying loans, misdiagnosing conditions, flagging innocent people — the consequences fall on those groups. Representative data is not optional; it is an ethical obligation.
+  </div>
+
+  <h3 class="block-title">Case Studies</h3>
+  <div class="tab-nav">
+    <button class="tab-btn active s3" onclick="switchTab(this, 'r-health')">🏥 Healthcare</button>
+    <button class="tab-btn s3" onclick="switchTab(this, 'r-finance')">🏦 Finance</button>
+  </div>
+  <div id="r-health" class="tab-pane active">
+    <div class="scenario">
+      <div class="label">Healthcare Case Study</div>
+      <h4>Pulse Oximeters and Skin Tone</h4>
+      <p>Pulse oximeters — the clip-on devices that measure blood oxygen — were shown to be significantly less accurate on patients with darker skin tones. The devices were calibrated primarily on lighter-skinned subjects. When AI diagnostic models trained on this device's data were deployed in diverse hospitals, they systematically over-estimated blood oxygen levels in Black patients, delaying treatment. This is a direct result of non-representative training data.</p>
+    </div>
+  </div>
+  <div id="r-finance" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Finance Case Study</div>
+      <h4>Credit Scoring and Zip Codes</h4>
+      <p>A lender trained a credit model on historical loan data. The historical data reflected decades of redlining — the practice of denying loans in certain zip codes that happened to correlate with minority neighborhoods. The AI learned that those zip codes predicted default. But the zip code was a <em>proxy variable</em>: it encoded race, not credit risk. The AI perpetuated discrimination while appearing to make race-neutral decisions.</p>
+    </div>
+  </div>
+
+  <!-- EXAM 2.3 -->
+  <div class="exam-section">
+    <div class="exam-header">
+      <span class="exam-badge">Exam Practice</span>
+      <h3>Section 2.3 — 5 Practice Questions</h3>
+    </div>
+
+    <div class="question">
+      <div class="q-text">11. A hospital trains a sepsis detection AI using only data from its ICU. When deployed in the general ward, the model performs poorly. What is the MOST likely cause?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The model used the wrong algorithm for the task</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>The training data was not representative of the patient population in the general ward</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The general ward patients had worse data quality than ICU patients</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Sepsis detection requires manual collection methods only</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">ICU patients are sicker and monitored more intensively than general ward patients. A model trained on ICU data learns patterns specific to critically ill patients and cannot generalize. The deployment context was not represented in training data.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> This is a classic example of domain shift — the difference between training distribution and deployment distribution.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">12. What is a "proxy variable" in the context of AI bias?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>A variable that substitutes for missing data in a dataset</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>A seemingly neutral variable that actually correlates with and encodes a protected characteristic</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>A feature created during feature engineering to improve model accuracy</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>A backup variable used when the primary variable has too many missing values</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Zip code, last name, and school attended are examples of proxy variables. They appear neutral but can encode race, ethnicity, or socioeconomic status, allowing a model to discriminate without explicitly using protected attributes.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A is a plausible distractor since "proxy" sounds like a substitute. Emphasize the concept of correlation with protected characteristics.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">13. Which TWO of the following best describe strategies for improving data representativeness? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>Using stratified sampling to ensure all subgroups are proportionally included</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Removing all data from minority subgroups to reduce complexity</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Auditing the data collection process to identify where certain groups may be under-collected</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Training the model only on data where the target outcome is known with certainty</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Stratified sampling (A) ensures proportional coverage. Auditing collection processes (C) surfaces systematic gaps before they become model biases. B would worsen representativeness; D describes labeled data selection, not representativeness.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> B tests whether students understand that removing minority data is the opposite of the solution.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">14. A predictive policing AI is deployed and begins sending more officers to Neighborhood X. More arrests occur there. The model then identifies Neighborhood X as higher risk. This is an example of:</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Measurement bias</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Sampling bias</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Feedback loop bias</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Historical bias</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">A feedback loop bias occurs when the AI's own decisions generate new training data that reinforces the original prediction. More policing → more arrests → model "confirms" the area is high-crime, regardless of actual crime rates.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> This is one of the most powerful examples of how an AI can perpetuate injustice while appearing objective. Use it as a discussion anchor.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">15. An AI company is building a loan approval model. They remove the "race" column from their dataset before training. Does this guarantee a fair model?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Yes — removing protected attributes from training data always ensures fairness</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>No — proxy variables like zip code or last name may still encode race indirectly</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Yes — as long as the model accuracy is high, the model is fair</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>No — but only because historical data should never be used for lending decisions</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Simply removing the "race" column does not prevent discrimination. Other variables (zip code, name, school attended) can act as proxies and effectively re-encode race, allowing the model to discriminate by proxy.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A is the most common student error. This is a critical takeaway: fairness requires more than removing sensitive columns.</div>
+      </div>
+    </div>
+
+  </div><!-- end exam 2.3 -->
+</div><!-- end section 2.3 -->
+
+<div class="section-sep"></div>
+
+<!-- ─────────────────────────────
+     SECTION 2.4
+───────────────────────────── -->
+<div id="s24" class="section-body">
+  <div class="section-header s4">
+    <div class="section-num">2.4</div>
+    <div>
+      <h2>AI Resource Requirements &amp; Project Feasibility</h2>
+      <p class="tagline">"You wouldn't drive cross-country without checking the fuel, tires, and budget first."</p>
+    </div>
+  </div>
+
+  <p>Many AI projects fail not because the idea was bad — but because teams never asked: <strong>"Do we actually have what it takes to build this?"</strong> Resource assessment answers that question before money is spent.</p>
+
+  <h3 class="block-title">The Four Resource Dimensions</h3>
+  <div class="grid">
+    <div class="card accent-s4">
+      <div class="card-icon">💻</div>
+      <div class="card-title">Computing Resources</div>
+      <div class="card-desc">CPU/GPU processing power, cloud vs. on-premise infrastructure. Some models require supercomputers; others run on a laptop.</div>
+    </div>
+    <div class="card accent-s4">
+      <div class="card-icon">⏳</div>
+      <div class="card-title">Time Complexity</div>
+      <div class="card-desc">How long will training take as data grows? A model that takes 2 days to train cannot support real-time decision making.</div>
+    </div>
+    <div class="card accent-s4">
+      <div class="card-icon">📦</div>
+      <div class="card-title">Data Requirements</div>
+      <div class="card-desc">Volume, variety, and availability. Some problems require millions of labeled examples; others can work with hundreds.</div>
+    </div>
+    <div class="card accent-s4">
+      <div class="card-icon">💰</div>
+      <div class="card-title">Budget &amp; Expertise</div>
+      <div class="card-desc">Cloud compute, data labeling, talent, and ongoing maintenance all carry real costs that must be planned upfront.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">When to Proceed vs. Pause</h3>
+  <table>
+    <thead>
+      <tr><th>Signal</th><th>Likely Decision</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>The problem is well-defined, data exists, and compute is accessible</td><td>✅ Proceed</td></tr>
+      <tr><td>The problem is clear but training data does not exist and would be expensive to collect</td><td>⚠️ Pause — assess collection cost vs. business value</td></tr>
+      <tr><td>The required model would take months to train on available hardware</td><td>⚠️ Consider cloud compute or a simpler model</td></tr>
+      <tr><td>Similar AI solutions already exist and can be purchased</td><td>🔄 Buy vs. Build analysis required</td></tr>
+      <tr><td>Regulatory requirements for the domain (healthcare, finance) are unclear</td><td>🚫 Delay — compliance must be confirmed first</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout s4">
+    <strong>Real-World Example: Drug Discovery</strong>
+    Pharmaceutical companies have invested billions in AI-driven drug discovery. The compute requirements (training on molecular structures) are enormous, timelines run years, and the regulatory path adds years more. An organization without access to specialized hardware, rare chemistry datasets, and domain experts cannot replicate this — regardless of algorithmic sophistication.
+  </div>
+
+  <!-- EXAM 2.4 -->
+  <div class="exam-section">
+    <div class="exam-header">
+      <span class="exam-badge">Exam Practice</span>
+      <h3>Section 2.4 — 5 Practice Questions</h3>
+    </div>
+
+    <div class="question">
+      <div class="q-text">16. A startup wants to build an AI system for real-time fraud detection. The system must process each transaction in under 100 milliseconds. Which resource dimension is MOST critical to assess first?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Data budget — how much labeled fraud data they can afford</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Time complexity and computing resources — the model must respond fast enough in production</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Team size — whether they have enough data scientists</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Algorithm type — whether to use supervised or unsupervised learning</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Real-time requirements impose strict latency constraints. If the model cannot produce a result in under 100ms, it is unusable — regardless of accuracy. This makes compute and time complexity the primary feasibility gate.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a common distractor — students often jump to algorithm selection. Emphasize: infrastructure feasibility comes before algorithm design.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">17. Which TWO of the following are considered "hidden costs" that teams often underestimate in AI projects? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>Ongoing model monitoring and maintenance after deployment</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>The initial cost of selecting a cloud provider</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Data labeling — the human time required to annotate training examples</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The cost of buying a new laptop for the team</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Post-deployment monitoring (A) is a recurring cost that teams frequently forget to budget. Data labeling (C) — paying humans to annotate images, text, or audio — can cost more than compute for supervised learning projects.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> B and D are visible, obvious costs. The exam tests whether students identify the non-obvious costs.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">18. A hospital AI team realizes their on-premise servers would take 6 months to train the model they need. What is the MOST practical next step?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Cancel the project — if on-premise hardware is insufficient, the project is not feasible</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Reduce the training dataset until the model trains in a week</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Evaluate cloud computing options (AWS, Google Cloud, Azure) for scalable GPU access</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Switch to unsupervised learning, which always trains faster</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Cloud computing allows teams to rent powerful GPU clusters for short periods, solving a hardware bottleneck without purchasing new infrastructure. A is defeatist. B may compromise model quality. D is incorrect — unsupervised vs. supervised doesn't determine training speed.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D tests a common misconception about learning type vs. compute requirements.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">19. Which of the following best describes why "time complexity" matters for AI project feasibility?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>It determines how long it takes to hire the right data science team</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>It describes how processing time increases as data volume grows, affecting both training and real-time inference</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>It measures how much time the end user spends interacting with the AI</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>It only applies to models with more than 1 million training examples</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Time complexity is a measure of how computational demands scale with data size. A model with poor time complexity may be fine on small data but prohibitively slow at scale or for real-time use.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a common student assumption. Time complexity is relevant at any scale.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">20. A team wants to build an AI for detecting rare diseases. They find that only 50 confirmed cases exist in the world. What is the PRIMARY feasibility concern?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Computing resources — rare disease detection requires specialized GPUs</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Budget — rare disease datasets are always very expensive to purchase</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Data volume — 50 cases is almost certainly insufficient to train a reliable supervised learning model</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Algorithm selection — classification algorithms cannot handle rare diseases</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Supervised learning models typically need hundreds to thousands of labeled examples to generalize. 50 cases creates a class-imbalance problem so severe that the model may simply learn to always predict "no disease" and achieve 99.9% accuracy while being clinically useless.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> This is a great bridge to the concept of class imbalance in Section 3 (algorithms and models).</div>
+      </div>
+    </div>
+
+  </div><!-- end exam 2.4 -->
+</div><!-- end section 2.4 -->
+
+<div class="section-sep"></div>
+
+<!-- ─────────────────────────────
+     SECTION 2.5
+───────────────────────────── -->
+<div id="s25" class="section-body">
+  <div class="section-header s5">
+    <div class="section-num">2.5</div>
+    <div>
+      <h2>Data Conversion for AI</h2>
+      <p class="tagline">"Every photo, word, and sound must be translated into numbers before AI can learn from it."</p>
+    </div>
+  </div>
+
+  <p>AI systems are fundamentally mathematical. They can only process <strong>numbers</strong>. Everything else — text, images, audio, video, categorical labels — must be converted into numerical form before a model can learn from it. This section covers the three core transformations that make raw data AI-ready.</p>
+
+  <h3 class="block-title">The Three Pillars of Data Conversion</h3>
+  <div class="grid">
+    <div class="card accent-s5">
+      <div class="card-icon">📐</div>
+      <div class="card-title">1. Format Standardization</div>
+      <div class="card-desc">Convert all data into consistent, structured formats. Images must be the same size; dates must use the same format; text must use the same encoding.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">01</div>
+      <div class="card-title">2. Binary Representation</div>
+      <div class="card-desc">All information ultimately lives in computers as 0s and 1s. Images become pixel arrays; text becomes character codes; audio becomes frequency values.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">🔧</div>
+      <div class="card-title">3. Feature Engineering</div>
+      <div class="card-desc">Transform raw numbers into meaningful, model-ready variables. Raw date → day of week + is_holiday + season. Raw text → sentiment score + word count + topic category.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Feature Engineering: The Kitchen Prep Analogy</h3>
+  <div class="callout s5">
+    <strong>Think of it this way</strong>
+    Feature engineering is like preparing ingredients before cooking. You don't throw whole vegetables into a blender — you wash, peel, chop, and portion them first. Similarly, raw data contains valuable information that must be extracted, reshaped, and portioned before an AI algorithm can work with it effectively.
+  </div>
+
+  <h3 class="block-title">The 4-Step Feature Engineering Process</h3>
+  <div class="steps">
+    <div class="step"><div class="step-num s5">1</div><div class="step-body"><div class="step-title">Data Understanding</div><div class="step-desc">Examine raw data types, ranges, distributions. What information is present? What is missing?</div></div></div>
+    <div class="step"><div class="step-num s5">2</div><div class="step-body"><div class="step-title">Identify Transformations</div><div class="step-desc">Determine what changes are needed: normalization, encoding, imputation, or new feature creation.</div></div></div>
+    <div class="step"><div class="step-num s5">3</div><div class="step-body"><div class="step-title">Implement Transformations</div><div class="step-desc">Apply changes systematically and document every step. Consistency is critical — new data must be processed exactly the same way.</div></div></div>
+    <div class="step"><div class="step-num s5">4</div><div class="step-body"><div class="step-title">Create &amp; Manage Processed Datasets</div><div class="step-desc">Store cleaned, transformed features with full documentation so any team member (or future you) can reproduce the result.</div></div></div>
+  </div>
+
+  <h3 class="block-title">Key Transformation Techniques</h3>
+  <table>
+    <thead>
+      <tr><th>Technique</th><th>What It Does</th><th>Example</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Normalization / Scaling</strong></td>
+        <td>Converts values to a common scale (0–1 or z-score) so large numbers don't dominate</td>
+        <td>Age (0–100) and income (0–1,000,000) both scaled to 0–1</td>
+      </tr>
+      <tr>
+        <td><strong>One-Hot Encoding</strong></td>
+        <td>Converts categorical text into binary columns (one column per category)</td>
+        <td>"Blood type" A/B/AB/O → four columns, each 0 or 1</td>
+      </tr>
+      <tr>
+        <td><strong>Missing Value Imputation</strong></td>
+        <td>Fills missing values with a calculated substitute (mean, median, predicted)</td>
+        <td>Missing patient weight filled with the average weight for that age group</td>
+      </tr>
+      <tr>
+        <td><strong>Temporal Feature Extraction</strong></td>
+        <td>Breaks a date/time into separate useful features</td>
+        <td>"2023-03-15" → day=Wednesday, month=March, is_weekend=False, quarter=Q1</td>
+      </tr>
+      <tr>
+        <td><strong>Text Vectorization</strong></td>
+        <td>Converts words into numerical vectors that capture meaning</td>
+        <td>Patient feedback → sentiment score (-1 to +1) + complaint category</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout s5">
+    <strong>Critical Rule: Transformation Consistency</strong>
+    Whatever transformation you apply to training data MUST be applied identically to all new incoming data. If you normalized ages using a 0–100 scale during training, you cannot use a 0–120 scale at prediction time. Inconsistency here causes silent, hard-to-detect model failures.
+  </div>
+
+  <!-- EXAM 2.5 -->
+  <div class="exam-section">
+    <div class="exam-header">
+      <span class="exam-badge">Exam Practice</span>
+      <h3>Section 2.5 — 5 Practice Questions</h3>
+    </div>
+
+    <div class="question">
+      <div class="q-text">21. A dataset contains a "blood_type" column with values A, B, AB, and O. Which transformation is most appropriate before using this data in a machine learning model?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Normalization — scale values between 0 and 1</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>One-hot encoding — create a separate binary column for each blood type</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Imputation — fill missing values with the most common blood type</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>No transformation needed — AI models can process text directly</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Blood type is a categorical variable with no natural numeric order. One-hot encoding creates binary columns (A=1 or 0, B=1 or 0, etc.) without implying that AB is "greater than" A — which label encoding would incorrectly suggest.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D tests whether students know AI cannot process raw text. A tests confusion between normalization (for continuous numeric data) and encoding (for categorical data).</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">22. A model was trained using income data normalized to a 0–1 scale based on a maximum income of $200,000. A new customer submits an application with an income of $350,000. What is the MOST important action to take?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Reject the application because the value is out of range</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Cap the income at $200,000 before normalizing, without documenting the change</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Apply the same normalization parameters used during training consistently, and flag the out-of-distribution value</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Re-train the model with the new income value before processing the application</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Transformation consistency requires using the original normalization parameters at inference time. The out-of-distribution value (above training range) should be flagged for review, but the transformation process itself must remain consistent.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D introduces a dangerous anti-pattern: re-training on every new value is operationally impossible and would cause model instability.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">23. Which TWO of the following are examples of temporal feature extraction? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>Extracting "day of week" and "is_holiday" from a timestamp</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Replacing missing dates with the median date in the dataset</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Calculating the number of days since a patient's last hospital visit</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Converting a date column to binary format for computer storage</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Temporal feature extraction means deriving meaningful time-based variables from raw date/time data. Day of week (A) and days since last visit (C) are examples that capture patterns a raw timestamp cannot. B is imputation; D is binary conversion — different concepts.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D tests whether students confuse binary representation (the underlying computer storage layer) with feature engineering (the analytical layer).</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">24. What is data leakage in the context of feature engineering?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>When private training data is accidentally shared with the public</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>When information from the future or from the target variable is accidentally included in features used during training</span></button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>When feature values slowly drift over time after deployment</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>When too many features are created and the model overfits</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Data leakage means the model "sees" the answer during training — for example, including a "post-diagnosis" column when predicting whether a patient will be diagnosed. The model performs beautifully in testing but fails completely in the real world.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A describes a privacy breach (relevant to ethics). C describes data drift (relevant to monitoring). Both are plausible distractors that test broader course coverage.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">25. A machine learning engineer creates 200 new features through feature engineering. Model accuracy on training data is excellent but drops sharply on real-world data. What is the MOST likely cause?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The model did not use enough binary representation</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>The training data was collected using automated methods instead of manual methods</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Too many features caused the model to overfit — it learned noise in the training data instead of real patterns</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The feature engineering transformations were applied inconsistently</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Overfitting occurs when a model learns the training data too specifically — including random noise — rather than the underlying patterns. Creating hundreds of features without selection often causes this. Fewer, well-chosen features usually generalize better.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a plausible distractor. Clarify: D would cause the model to fail in a detectable, consistent way. C causes the model to <em>appear</em> to succeed during development before failing in production.</div>
+      </div>
+    </div>
+
+  </div><!-- end exam 2.5 -->
+</div><!-- end section 2.5 -->
+
+</div><!-- end container -->
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer>
+  ITS OD 307 · Artificial Intelligence Deep Dive · Chapter 2 · Santosh Srinivasaiah · 2025
+</footer>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const scrollTop = window.scrollY || doc.scrollTop;
+    const scrollHeight = doc.scrollHeight - doc.clientHeight;
+    const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+  });
+
+  // Tab switching
+  function switchTab(btn, tabId) {
+    const nav = btn.closest('.tab-nav');
+    const section = nav.nextElementSibling;
+    // deactivate all in this nav
+    nav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // hide all sibling panes
+    let el = nav.nextElementSibling;
+    while (el && el.classList.contains('tab-pane')) {
+      el.classList.remove('active');
+      el = el.nextElementSibling;
+    }
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  // MCQ selection
+  function pick(btn, result) {
+    const opts = btn.closest('.options');
+    if (opts.querySelector('.correct, .wrong')) return; // already answered
+    btn.classList.add(result);
+    if (result === 'wrong') {
+      opts.querySelectorAll('.option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes("'correct'")) {
+          o.classList.add('reveal-correct');
+        }
+      });
+    }
+  }
+
+  // Reveal answer
+  function revealAnswer(btn) {
+    const block = btn.nextElementSibling;
+    block.classList.add('show');
+    btn.disabled = true;
+    btn.textContent = 'Answer Shown';
+  }
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        const offset = 60;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
