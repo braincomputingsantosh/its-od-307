@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 4 — AI/ML Production Deployment | ITS OD 307</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f6f1;
+    --surface: #ffffff;
+    --text: #1a1814;
+    --muted: #6b6560;
+    --border: #e2ddd6;
+
+    --c41: #0d7377;   /* teal – 4.1 */
+    --c41-light: #e6f4f5;
+    --c41-mid: #b2dfe0;
+
+    --c42: #c05621;   /* burnt orange – 4.2 */
+    --c42-light: #fdf0e8;
+    --c42-mid: #f5c8a8;
+
+    --c43: #3563a8;   /* steel blue – 4.3 */
+    --c43-light: #eaf0fb;
+    --c43-mid: #b3caf0;
+
+    --c44: #6b3fa0;   /* violet – 4.4 */
+    --c44-light: #f0eaf9;
+    --c44-mid: #ceaff0;
+
+    --accent: #c05621;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--c41), var(--c42), var(--c43), var(--c44));
+    width: 0%; z-index: 1000; transition: width 0.1s ease;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--text);
+    color: white;
+    padding: 48px 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '4';
+    position: absolute; right: 48px; top: -20px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 240px; color: rgba(255,255,255,0.05);
+    line-height: 1; pointer-events: none;
+  }
+  header .course-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; color: rgba(255,255,255,0.5);
+    margin-bottom: 12px;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.15; font-weight: 400;
+    margin-bottom: 16px;
+  }
+  header h1 em { color: #f6ad55; font-style: normal; }
+  header .subtitle {
+    font-size: 15px; color: rgba(255,255,255,0.65); max-width: 560px;
+  }
+  .section-pills {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px;
+  }
+  .pill {
+    padding: 5px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+    text-decoration: none; color: white;
+  }
+  .pill-41 { background: var(--c41); }
+  .pill-42 { background: var(--c42); }
+  .pill-43 { background: var(--c43); }
+  .pill-44 { background: var(--c44); }
+
+  /* ── STICKY NAV ── */
+  nav {
+    position: sticky; top: 3px; z-index: 900;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 60px;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  nav a {
+    display: inline-block; padding: 14px 18px;
+    font-size: 13px; font-weight: 500;
+    text-decoration: none; color: var(--muted);
+    border-bottom: 3px solid transparent;
+    white-space: nowrap; transition: all 0.2s;
+  }
+  nav a:hover { color: var(--text); }
+  nav a.active-41 { color: var(--c41); border-color: var(--c41); }
+  nav a.active-42 { color: var(--c42); border-color: var(--c42); }
+  nav a.active-43 { color: var(--c43); border-color: var(--c43); }
+  nav a.active-44 { color: var(--c44); border-color: var(--c44); }
+  nav a.active-q  { color: var(--accent); border-color: var(--accent); }
+
+  /* ── MAIN LAYOUT ── */
+  main { max-width: 940px; margin: 0 auto; padding: 0 40px 80px; }
+
+  /* ── SECTIONS ── */
+  .section { padding: 64px 0 48px; }
+  .section-header {
+    display: flex; align-items: flex-start; gap: 20px; margin-bottom: 36px;
+  }
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    padding: 6px 12px; border-radius: 4px;
+    flex-shrink: 0; margin-top: 6px;
+  }
+  .num-41 { background: var(--c41-light); color: var(--c41); }
+  .num-42 { background: var(--c42-light); color: var(--c42); }
+  .num-43 { background: var(--c43-light); color: var(--c43); }
+  .num-44 { background: var(--c44-light); color: var(--c44); }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(22px, 3vw, 32px); font-weight: 400; line-height: 1.2;
+  }
+
+  .section-divider {
+    height: 1px; background: var(--border); margin: 64px 0 0;
+  }
+
+  /* ── PROSE ── */
+  .prose p { margin-bottom: 16px; font-size: 15.5px; color: #2c2820; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  /* ── CALLOUT BOX ── */
+  .callout {
+    border-radius: 10px; padding: 20px 24px;
+    margin: 28px 0; font-size: 14.5px;
+    border-left: 4px solid;
+  }
+  .callout-41 { background: var(--c41-light); border-color: var(--c41); }
+  .callout-42 { background: var(--c42-light); border-color: var(--c42); }
+  .callout-43 { background: var(--c43-light); border-color: var(--c43); }
+  .callout-44 { background: var(--c44-light); border-color: var(--c44); }
+  .callout strong { display: block; margin-bottom: 6px; font-size: 12px;
+    letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* ── CONCEPT GRID ── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; margin: 28px 0;
+  }
+  .concept-card {
+    border-radius: 10px; padding: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .concept-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+  .concept-card .icon { font-size: 22px; margin-bottom: 10px; }
+  .concept-card h4 { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+  .concept-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 28px 0; border-radius: 10px; border: 1.5px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); }
+  thead th {
+    padding: 12px 16px; font-size: 12px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: white; text-align: left;
+  }
+  tbody td { padding: 12px 16px; font-size: 14px; border-top: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover td { background: #faf9f7; }
+  .th-41 { background: var(--c41); }
+  .th-42 { background: var(--c42); }
+  .th-43 { background: var(--c43); }
+  .th-44 { background: var(--c44); }
+
+  /* ── TABS ── */
+  .tab-container { margin: 28px 0; }
+  .tab-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0; }
+  .tab-btn {
+    padding: 8px 18px; border-radius: 6px 6px 0 0;
+    border: 1.5px solid var(--border); border-bottom: none;
+    background: var(--bg); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; color: var(--muted);
+  }
+  .tab-btn.active-41 { background: var(--c41); color: white; border-color: var(--c41); }
+  .tab-btn.active-42 { background: var(--c42); color: white; border-color: var(--c42); }
+  .tab-btn.active-43 { background: var(--c43); color: white; border-color: var(--c43); }
+  .tab-btn.active-44 { background: var(--c44); color: white; border-color: var(--c44); }
+  .tab-panel {
+    border: 1.5px solid var(--border); border-radius: 0 8px 8px 8px;
+    padding: 24px; background: var(--surface); display: none;
+  }
+  .tab-panel.active { display: block; }
+  .tab-panel h4 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  .tab-panel p  { font-size: 14px; color: #2c2820; margin-bottom: 10px; }
+  .tab-panel ul { padding-left: 20px; }
+  .tab-panel ul li { font-size: 14px; color: #2c2820; margin-bottom: 6px; }
+
+  /* ── PROCESS FLOW ── */
+  .process-flow {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 0; margin: 28px 0;
+  }
+  .flow-step {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 14px 18px;
+    font-size: 13.5px; font-weight: 500; text-align: center;
+    flex: 1; min-width: 110px;
+  }
+  .flow-arrow {
+    font-size: 18px; color: var(--muted);
+    padding: 0 6px; flex-shrink: 0;
+  }
+  .flow-41 { border-color: var(--c41); color: var(--c41); background: var(--c41-light); }
+  .flow-42 { border-color: var(--c42); color: var(--c42); background: var(--c42-light); }
+  .flow-43 { border-color: var(--c43); color: var(--c43); background: var(--c43-light); }
+  .flow-44 { border-color: var(--c44); color: var(--c44); background: var(--c44-light); }
+
+  /* ── COMPARISON BOXES ── */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  .compare-box { border-radius: 10px; padding: 20px; border: 1.5px solid var(--border); }
+  .compare-box h4 { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .compare-box ul { padding-left: 18px; }
+  .compare-box ul li { font-size: 13.5px; color: #2c2820; margin-bottom: 5px; }
+  @media(max-width:560px) { .compare-grid { grid-template-columns: 1fr; } }
+
+  /* ── PIPELINE DIAGRAM ── */
+  .pipeline {
+    background: var(--surface); border-radius: 12px;
+    border: 1.5px solid var(--border); padding: 24px;
+    margin: 28px 0; overflow-x: auto;
+  }
+  .pipeline-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .pipeline-row { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+  .p-node {
+    padding: 8px 14px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 500;
+    white-space: nowrap; text-align: center;
+  }
+  .p-arrow { padding: 0 8px; color: var(--muted); font-size: 16px; flex-shrink: 0; }
+
+  /* ── EXAM QUESTIONS ── */
+  #questions { padding: 64px 0 48px; }
+  .q-header {
+    background: var(--text); color: white;
+    border-radius: 12px; padding: 28px 32px; margin-bottom: 32px;
+  }
+  .q-header h2 {
+    font-family: 'DM Serif Display', serif; font-size: 26px;
+    font-weight: 400; margin-bottom: 6px;
+  }
+  .q-header p { font-size: 14px; color: rgba(255,255,255,0.65); }
+
+  .question-card {
+    background: var(--surface); border-radius: 12px;
+    border: 1.5px solid var(--border); padding: 28px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+  }
+  .question-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .q-meta {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  }
+  .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 3px 9px; border-radius: 4px; color: var(--muted);
+  }
+  .q-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+    padding: 3px 9px; border-radius: 4px;
+  }
+  .q-tag-41 { background: var(--c41-light); color: var(--c41); }
+  .q-tag-42 { background: var(--c42-light); color: var(--c42); }
+  .q-tag-43 { background: var(--c43-light); color: var(--c43); }
+  .q-tag-44 { background: var(--c44-light); color: var(--c44); }
+
+  .q-text { font-size: 15px; font-weight: 500; line-height: 1.55; margin-bottom: 18px; }
+  .q-options { display: grid; gap: 10px; }
+  .q-option {
+    padding: 12px 16px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 14px; cursor: pointer;
+    transition: all 0.15s; text-align: left;
+  }
+  .q-option:hover:not(.disabled) { border-color: #aaa; background: #f0ede8; }
+  .q-option.correct   { background: #e6f9f0; border-color: #22c55e; color: #166534; }
+  .q-option.incorrect { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+  .q-option.disabled  { cursor: default; }
+
+  .q-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-reveal {
+    padding: 8px 16px; border-radius: 6px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-reveal:hover { background: var(--bg); }
+  .btn-reset {
+    padding: 8px 16px; border-radius: 6px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    color: var(--muted); transition: all 0.15s;
+  }
+  .btn-reset:hover { color: var(--text); }
+
+  .q-explanation {
+    margin-top: 16px; padding: 16px 18px;
+    border-radius: 8px; background: #f5f3ee;
+    border-left: 3px solid var(--accent);
+    font-size: 13.5px; display: none;
+  }
+  .q-explanation.show { display: block; }
+  .q-explanation strong { color: var(--c42); }
+  .teacher-note {
+    margin-top: 10px; padding: 10px 14px;
+    background: #fffbf0; border: 1px dashed #f6ad55;
+    border-radius: 6px; font-size: 12.5px; color: #7a5c20;
+  }
+  .teacher-note::before { content: '📌 Teacher Note: '; font-weight: 700; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 40px;
+    color: var(--muted); font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  /* ── UTILITY ── */
+  h3.subsection { font-size: 17px; font-weight: 600; margin: 32px 0 14px; }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 3px; margin-right: 6px;
+  }
+  .badge-41 { background: var(--c41-light); color: var(--c41); }
+  .badge-42 { background: var(--c42-light); color: var(--c42); }
+  .badge-43 { background: var(--c43-light); color: var(--c43); }
+  .badge-44 { background: var(--c44-light); color: var(--c44); }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="course-label">ITS OD 307 — Artificial Intelligence Deep Dive</div>
+  <h1>Chapter 4 — <em>AI/ML Production</em><br>Deployment</h1>
+  <p class="subtitle">From training users to building robust pipelines — everything needed to launch an AI system into the real world.</p>
+  <div class="section-pills">
+    <a class="pill pill-41" href="#s41">4.1 Training Users</a>
+    <a class="pill pill-42" href="#s42">4.2 Production Challenges</a>
+    <a class="pill pill-43" href="#s43">4.3 Pipelines & Integration</a>
+    <a class="pill pill-44" href="#s44">4.4 Supporting the Solution</a>
+    <a class="pill" href="#questions" style="background:#333">25 Exam Questions</a>
+  </div>
+</header>
+
+<!-- STICKY NAV -->
+<nav id="main-nav">
+  <a href="#s41">4.1 Training Users</a>
+  <a href="#s42">4.2 Production Challenges</a>
+  <a href="#s43">4.3 Pipelines & Integration</a>
+  <a href="#s44">4.4 Supporting the Solution</a>
+  <a href="#questions">📝 Exam Questions</a>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 4.1 -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section" id="s41">
+  <div class="section-header">
+    <span class="section-number num-41">SECTION 4.1</span>
+    <h2 class="section-title">Training Customers on Product Usage and Expectations</h2>
+  </div>
+
+  <div class="prose">
+    <p>Deploying an AI model is not the finish line — it's the starting gun for user education. Even the most accurate model will fail in practice if the people using it don't understand what it can and cannot do. Section 4.1 covers the four pillars of effective AI onboarding.</p>
+  </div>
+
+  <div class="callout callout-41">
+    <strong>🎯 Core Insight</strong>
+    Successful deployment = Technical accuracy <strong>+</strong> User understanding. A 94%-accurate model that's misused by users is functionally worse than an 85%-accurate model used correctly.
+  </div>
+
+  <h3 class="subsection">4.1.1 — Informing Users of Model Limitations</h3>
+  <div class="prose">
+    <p>Every AI model has a boundary — a zone where its training data doesn't quite reach. Users need to understand these boundaries before they encounter them on their own. The four key limitation categories are: data limitations, accuracy boundaries, scope restrictions, and temporal constraints.</p>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">🗂️</div>
+      <h4>Data Limitations</h4>
+      <p>Model only performs well on data similar to what it was trained on. New populations or contexts may degrade accuracy.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🎯</div>
+      <h4>Accuracy Boundaries</h4>
+      <p>No model is 100% accurate. Users must know the error rate and what "getting it wrong" looks like in your context.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔲</div>
+      <h4>Scope Restrictions</h4>
+      <p>Models are trained to solve specific problem types. Using them outside their intended domain produces unreliable results.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">⏳</div>
+      <h4>Temporal Constraints</h4>
+      <p>Models trained on historical data may degrade over time as the world changes. Performance needs ongoing monitoring.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-41">
+    <strong>💡 Healthcare Example</strong>
+    A chest X-ray AI trained at Hospital A may underperform at Hospital B due to different imaging equipment, different patient demographics, or different disease prevalence rates — even though the underlying disease looks identical on both scans. This must be disclosed upfront.
+  </div>
+
+  <h3 class="subsection">4.1.2 — Informing Users of Intended Model Usage</h3>
+  <div class="prose">
+    <p>Beyond limitations, users need clear guidance on <em>how</em> to use the model correctly: what data to feed it, how to interpret outputs, when to escalate to a human expert, and what the model was never designed to do.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr class="th-41">
+          <th>Usage Documentation Component</th>
+          <th>What It Covers</th>
+          <th>Finance Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Input Specifications</strong></td><td>Exact data formats, quality standards, preprocessing requirements</td><td>Transaction amount, merchant type, location, customer history</td></tr>
+        <tr><td><strong>Output Interpretation</strong></td><td>How to read and act on model predictions and confidence scores</td><td>Score ≥ 0.8 → manual review; Score ≥ 0.95 → suspend account</td></tr>
+        <tr><td><strong>Decision Boundaries</strong></td><td>When to trust vs. question the model output</td><td>Do not use for legal fraud determination or direct customer communication</td></tr>
+        <tr><td><strong>Escalation Procedures</strong></td><td>When and how to involve human experts</td><td>All disputed transactions → fraud analyst desk within 24 hours</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subsection">4.1.3 — Sharing Documentation</h3>
+  <div class="prose">
+    <p>Different audiences need different levels of detail. A CEO needs a two-page summary; an engineer needs an API reference; a customer service agent needs a troubleshooting guide. Effective documentation serves all of them without overwhelming any of them.</p>
+  </div>
+
+  <div class="process-flow">
+    <div class="flow-step flow-41">Executive Summary</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-41">User Manual</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-41">Technical Reference</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-41">Troubleshooting Guide</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-41">Training Materials</div>
+  </div>
+
+  <h3 class="subsection">4.1.4 — Managing Customer Expectations</h3>
+  <div class="prose">
+    <p>Overpromising is the fastest way to lose user trust. Instead of vague promises like "human-like AI," give users concrete, measurable outcomes they can plan around.</p>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-box" style="border-color:#ef4444; background:#fef2f2;">
+      <h4 style="color:#991b1b;">❌ Vague / Overpromising</h4>
+      <ul>
+        <li>"This AI will handle all your customer inquiries."</li>
+        <li>"Human-like conversation capability."</li>
+        <li>"98% accuracy in all scenarios."</li>
+        <li>"Set it and forget it — fully autonomous."</li>
+      </ul>
+    </div>
+    <div class="compare-box" style="border-color:#22c55e; background:#e6f9f0;">
+      <h4 style="color:#166534;">✅ Specific / Trust-Building</h4>
+      <ul>
+        <li>"Handles 80% of common inquiries without human intervention."</li>
+        <li>"Reduces response time from 2 hours to 30 seconds for routine questions."</li>
+        <li>"Requires monthly updates with new FAQ content."</li>
+        <li>"Escalates complex issues to human agents within 3 conversation turns."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab-buttons">
+      <button class="tab-btn active-41" onclick="switchTab('e41','health41','41')">🏥 Healthcare Scenario</button>
+      <button class="tab-btn" onclick="switchTab('e41','finance41','41')">🏦 Finance Scenario</button>
+    </div>
+    <div id="health41" class="tab-panel active">
+      <h4>Hospital AI Diagnostic Tool — Expectation Setting</h4>
+      <p><strong>Wrong approach:</strong> "Our AI diagnoses pneumonia with near-perfect accuracy."</p>
+      <p><strong>Right approach:</strong> "This model achieves 94% accuracy on chest X-rays from imaging equipment similar to ours. Performance may vary for patients outside our typical demographic profile. Radiologist review is required before any clinical decision."</p>
+      <ul>
+        <li>Documentation includes list of equipment models the AI was trained on</li>
+        <li>Users shown sample output with confidence score explanation</li>
+        <li>Clear escalation: confidence below 70% → mandatory radiologist second opinion</li>
+      </ul>
+    </div>
+    <div id="finance41" class="tab-panel">
+      <h4>Bank Fraud Detection — Expectation Setting</h4>
+      <p><strong>Wrong approach:</strong> "Our AI will catch all fraudulent transactions."</p>
+      <p><strong>Right approach:</strong> "The model flags suspicious transactions with a confidence score. Scores above 0.95 trigger automatic holds. Scores between 0.8 and 0.95 require analyst review. False positives affect approximately 0.3% of legitimate transactions — impacted customers must be contacted within 2 business hours."</p>
+      <ul>
+        <li>Operations team trained on both false-positive and false-negative handling</li>
+        <li>Monthly model performance reports sent to branch managers</li>
+        <li>Dedicated hotline for analysts to flag unusual patterns to the ML team</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 4.2 -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section" id="s42">
+  <div class="section-header">
+    <span class="section-number num-42">SECTION 4.2</span>
+    <h2 class="section-title">Planning to Address Potential Production Challenges</h2>
+  </div>
+
+  <div class="prose">
+    <p>A model that performs beautifully in a controlled development environment can completely fall apart in the real world. The conditions that cause this — changing data, scaled load, integration gaps — are predictable. Planning for them before deployment is the difference between a recoverable setback and a major failure.</p>
+  </div>
+
+  <div class="callout callout-42">
+    <strong>⚠️ Real-World Warning</strong>
+    A recommendation system tested successfully on 10,000 users crashed when deployed to 10 million users. The model required 50GB of memory per instance and took 2 seconds per recommendation. Both of those problems could have been found with load testing before launch.
+  </div>
+
+  <h3 class="subsection">4.2.1 — Types of Production Challenges</h3>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">📉</div>
+      <h4>Model/Data Drift</h4>
+      <p>The world changes but the model doesn't. Patterns that were true during training no longer apply — accuracy quietly degrades.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">⚡</div>
+      <h4>Scalability Issues</h4>
+      <p>Models that work at 1,000 users may break at 1,000,000. Memory, latency, and throughput limits only appear at real production scale.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔗</div>
+      <h4>Integration Failures</h4>
+      <p>AI connects to CRMs, databases, APIs. When those systems update or go down, the AI pipeline breaks too.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🗣️</div>
+      <h4>Stakeholder Misalignment</h4>
+      <p>Overselling capabilities or using technical jargon creates unrealistic expectations that erode trust when reality hits.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">📄</div>
+      <h4>Poor Documentation</h4>
+      <p>Can't reproduce results, debug issues, or hand off to other teams. Knowledge lives in one person's head.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔒</div>
+      <h4>Security & Compliance</h4>
+      <p>Adversarial inputs, data leakage, regulatory non-compliance. AI systems must be designed with attack surfaces in mind.</p>
+    </div>
+  </div>
+
+  <h3 class="subsection">4.2.2 — Understanding Challenge Indicators (Early Warning Signs)</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr class="th-42">
+          <th>Challenge Type</th>
+          <th>Early Warning Signs</th>
+          <th>If Ignored…</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Data Drift</strong></td><td>Gradual accuracy drop; user complaints about "wrong answers"; input data distributions shifting</td><td>Model becomes unreliable, decisions get worse over time</td></tr>
+        <tr><td><strong>Scalability</strong></td><td>Slow response times; timeout errors during peak hours; memory warnings in server logs</td><td>System crash; frustrated users; revenue impact</td></tr>
+        <tr><td><strong>Integration</strong></td><td>Inconsistent predictions; data format mismatches; pipeline errors in logs</td><td>Silent failures that corrupt downstream decisions</td></tr>
+        <tr><td><strong>Stakeholder Gap</strong></td><td>Executives asking for capabilities the model wasn't built for; users bypassing the AI</td><td>Lost buy-in; project cancellation despite technical success</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subsection">4.2.3 — Challenge Mitigation Strategies</h3>
+  <div class="prose">
+    <p>The key principle: build for failure by design. Assume things will go wrong and create detection and recovery mechanisms before you need them.</p>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab-buttons">
+      <button class="tab-btn active-42" onclick="switchTab('e42','drift42','42')">📉 Drift Mitigation</button>
+      <button class="tab-btn" onclick="switchTab('e42','scale42','42')">⚡ Scalability</button>
+      <button class="tab-btn" onclick="switchTab('e42','health42','42')">🏥 Healthcare Case</button>
+      <button class="tab-btn" onclick="switchTab('e42','finance42','42')">🏦 Finance Case</button>
+    </div>
+    <div id="drift42" class="tab-panel active">
+      <h4>Drift Detection & Response</h4>
+      <p>Set up automated monitoring to compare live input distributions against training data. When statistical tests (like Kolmogorov-Smirnov) detect significant shifts, trigger alerts.</p>
+      <ul>
+        <li><strong>Data Drift:</strong> Changes in input feature distributions</li>
+        <li><strong>Concept Drift:</strong> The relationship between inputs and outputs changes (e.g., customer behavior shifts post-pandemic)</li>
+        <li><strong>Prior Probability Drift:</strong> Class frequencies change (e.g., new fraud types emerge)</li>
+        <li><strong>Response Plan:</strong> Immediate → add human review; Short-term → retrain on new data; Long-term → continuous learning pipeline</li>
+      </ul>
+    </div>
+    <div id="scale42" class="tab-panel">
+      <h4>Scalability Planning</h4>
+      <ul>
+        <li><strong>Load Test Before Launch:</strong> Simulate peak traffic (10×, 100× normal volume) before go-live</li>
+        <li><strong>Model Compression:</strong> Quantization (fewer bits per weight) and pruning (remove unused connections) can cut memory 75% with minimal accuracy loss</li>
+        <li><strong>Horizontal Scaling:</strong> Design pipelines to add more servers, not bigger servers</li>
+        <li><strong>Latency Budgets:</strong> Set hard SLAs — e.g., &lt;100ms for real-time fraud checks — and design backward from that constraint</li>
+        <li><strong>Batch vs. Real-time:</strong> Not every prediction needs to be real-time; batch processing overnight can relieve load dramatically</li>
+      </ul>
+    </div>
+    <div id="health42" class="tab-panel">
+      <h4>COVID-19 Drug Repurposing — Drift Mid-Project</h4>
+      <p>During COVID-19, AI models trained on existing drug databases had to handle a rapidly evolving situation. As new clinical trial data emerged, teams had to:</p>
+      <ul>
+        <li>Retrain models with emerging viral protein data (addressing concept drift)</li>
+        <li>Continuously update validation benchmarks as "ground truth" shifted</li>
+        <li>Add safety prediction models to account for novel interaction patterns</li>
+      </ul>
+      <p>Result: Several repurposed drugs entered trials months earlier than traditional discovery methods would have allowed — but only because teams had planned for model iteration from day one.</p>
+    </div>
+    <div id="finance42" class="tab-panel">
+      <h4>New Variant Fraud Patterns — Immediate Response Plan</h4>
+      <p>A fraud detection model trained on known fraud patterns suddenly starts missing a new attack vector.</p>
+      <ul>
+        <li><strong>Immediate:</strong> Switch to ensemble model with required human review for all flagged transactions</li>
+        <li><strong>Short-term:</strong> Collect and label examples of the new fraud variant</li>
+        <li><strong>Long-term:</strong> Retrain model with updated dataset; implement continuous learning pipeline so new patterns are ingested automatically</li>
+        <li><strong>Prevention:</strong> Set alert threshold to trigger model review whenever fraud-miss rate exceeds 2% week-over-week</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 4.3 -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section" id="s43">
+  <div class="section-header">
+    <span class="section-number num-43">SECTION 4.3</span>
+    <h2 class="section-title">Designing Production Pipelines and Application Integration</h2>
+  </div>
+
+  <div class="prose">
+    <p>An AI model that runs great in a Jupyter notebook is still just a science experiment. To become a production system, it needs two pipelines — one for training and one for inference — plus reliable integration with the existing systems it will interact with every day.</p>
+  </div>
+
+  <h3 class="subsection">4.3.1 — The Two Pipelines</h3>
+
+  <div class="pipeline">
+    <div class="pipeline-label">Training Pipeline</div>
+    <div class="pipeline-row">
+      <div class="p-node" style="background:var(--c43-light); color:var(--c43); border:1.5px solid var(--c43-mid);">Data Ingestion</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c43-light); color:var(--c43); border:1.5px solid var(--c43-mid);">Preprocessing</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c43-light); color:var(--c43); border:1.5px solid var(--c43-mid);">Model Training</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c43-light); color:var(--c43); border:1.5px solid var(--c43-mid);">Validation</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c43-light); color:var(--c43); border:1.5px solid var(--c43-mid);">Model Registry</div>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-label">Prediction Pipeline (Inference)</div>
+    <div class="pipeline-row">
+      <div class="p-node" style="background:#eaf0fb; color:#3563a8; border:1.5px solid #b3caf0;">Live Data Input</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:#eaf0fb; color:#3563a8; border:1.5px solid #b3caf0;">Feature Engineering</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:#eaf0fb; color:#3563a8; border:1.5px solid #b3caf0;">Model Inference</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:#eaf0fb; color:#3563a8; border:1.5px solid #b3caf0;">Output Processing</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:#eaf0fb; color:#3563a8; border:1.5px solid #b3caf0;">Logging & Monitoring</div>
+    </div>
+  </div>
+
+  <div class="callout callout-43">
+    <strong>⚙️ Critical Rule</strong>
+    The feature engineering steps in your training pipeline and prediction pipeline must be <strong>identical</strong>. If you normalize data differently during training vs. inference, every prediction will be wrong — but the model won't tell you why.
+  </div>
+
+  <h3 class="subsection">4.3.2 — Integration with Existing Systems</h3>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">🏗️</div>
+      <h4>Microservices</h4>
+      <p>AI runs as a containerized service that other applications call via API. Clean separation of concerns.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🚪</div>
+      <h4>API Gateway</h4>
+      <p>Single entry point for all AI calls. Handles authentication, rate limiting, routing, and versioning.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">📨</div>
+      <h4>Event-Driven</h4>
+      <p>Predictions triggered by events (e.g., new transaction arrives). Asynchronous and highly scalable.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🗂️</div>
+      <h4>Batch Processing</h4>
+      <p>Large sets of predictions run on a schedule (e.g., overnight risk scoring). Frees up real-time resources.</p>
+    </div>
+  </div>
+
+  <h3 class="subsection">4.3.3 — Building AI-Application Connections</h3>
+  <div class="prose">
+    <p>APIs are the bridge between your model and the world. Good AI API design follows four principles: consistent interface (standardized JSON formats), comprehensive error handling, rate limiting to prevent overload, and versioning for backward compatibility.</p>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-box" style="border-color: var(--c43-mid);">
+      <h4 style="color:var(--c43);">Synchronous (Real-time)</h4>
+      <ul>
+        <li>REST API call → immediate prediction response</li>
+        <li>Use when: fraud detection, medical triage alerts</li>
+        <li>Latency budget: typically &lt;200ms</li>
+        <li>Risk: one slow call blocks the user</li>
+      </ul>
+    </div>
+    <div class="compare-box" style="border-color: var(--c43-mid);">
+      <h4 style="color:var(--c43);">Asynchronous (Queue-based)</h4>
+      <ul>
+        <li>Request queued → prediction delivered later</li>
+        <li>Use when: loan risk scoring, recommendation batch</li>
+        <li>Latency budget: minutes to hours</li>
+        <li>Risk: predictions may feel "stale" to users</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="subsection">4.3.4 — User Feedback Mechanisms</h3>
+  <div class="prose">
+    <p>Feedback from real users is the most valuable data source for improving your model — yet it's often the last thing teams design for. Build it in from day one.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr class="th-43">
+          <th>Feedback Type</th>
+          <th>How It's Captured</th>
+          <th>Use Case Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Implicit</strong></td><td>User behavior — clicks, skips, purchase decisions</td><td>User skips all 5 recommendations → weak personalization</td></tr>
+        <tr><td><strong>Explicit</strong></td><td>Thumbs up/down, star ratings, corrections</td><td>Fraud analyst marks model's flag as false positive</td></tr>
+        <tr><td><strong>Expert</strong></td><td>Domain specialist validation of outputs</td><td>Radiologist overrides AI diagnosis with written rationale</td></tr>
+        <tr><td><strong>A/B Testing</strong></td><td>Controlled comparison of model versions in production</td><td>10% of traffic gets new model; compare click-through rate</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subsection">4.3.5 — Testing in Production</h3>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">🎲</div>
+      <h4>A/B Testing</h4>
+      <p>Split live traffic between current and new model versions. Compare real-world performance before full rollout.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🏆</div>
+      <h4>Champion/Challenger</h4>
+      <p>New model ("challenger") gets 5–10% of traffic. If it beats the existing model ("champion"), gradually increase its share.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">💥</div>
+      <h4>Stress Testing</h4>
+      <p>Push the system to 10× normal load in staging. Find the breaking point before users do.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🛡️</div>
+      <h4>Security Testing</h4>
+      <p>Send adversarial inputs designed to trick the model. Test for data leakage, injection attacks, and unexpected outputs.</p>
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab-buttons">
+      <button class="tab-btn active-43" onclick="switchTab('e43','health43','43')">🏥 Healthcare Integration</button>
+      <button class="tab-btn" onclick="switchTab('e43','finance43','43')">🏦 Finance Integration</button>
+    </div>
+    <div id="health43" class="tab-panel active">
+      <h4>Patient Triage System — Integration Architecture</h4>
+      <p><strong>Existing System:</strong> EHR → Nurse Station → Physician Dashboard</p>
+      <p><strong>AI Integration:</strong> EHR → AI Risk Scorer → Priority Queue → Physician Dashboard</p>
+      <ul>
+        <li>Synchronous API call when patient admitted: &lt;300ms response time SLA</li>
+        <li>Output: Risk score + top 3 contributing factors (explainability for physicians)</li>
+        <li>Feedback: Physician can override + log reason; overrides become retraining data</li>
+        <li>Testing: 10,000 labeled admission records run daily for accuracy tracking</li>
+      </ul>
+    </div>
+    <div id="finance43" class="tab-panel">
+      <h4>Real-Time Fraud Detection — Pipeline Architecture</h4>
+      <p><strong>Training Pipeline:</strong> Historical Transactions → Feature Engineering → Model Training → Validation → Model Registry</p>
+      <p><strong>Prediction Pipeline:</strong> Live Transaction → Feature Engineering → Model Inference → Risk Score → Decision Engine → Block/Allow</p>
+      <ul>
+        <li>Latency SLA: &lt;50ms (must complete before transaction authorization)</li>
+        <li>Feedback: Analyst dispute decisions logged within 24 hours; feed retraining pipeline weekly</li>
+        <li>A/B Test: New models get 5% of transaction traffic before full deployment</li>
+        <li>Stress test: Must handle 500 transactions/second during holiday shopping peaks</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SECTION 4.4 -->
+<!-- ══════════════════════════════════════════ -->
+<section class="section" id="s44">
+  <div class="section-header">
+    <span class="section-number num-44">SECTION 4.4</span>
+    <h2 class="section-title">Supporting the AI Solution</h2>
+  </div>
+
+  <div class="prose">
+    <p>Deployment is not a one-time event — it's the beginning of an ongoing support lifecycle. Long-term AI success requires good documentation, trained support teams, functioning feedback loops, drift detection systems, and a plan for continuously refreshing the data the model learns from.</p>
+  </div>
+
+  <div class="callout callout-44">
+    <strong>🔁 Mental Model</strong>
+    Think of a deployed AI system like a car. You don't just drive it off the lot and never look at it again. It needs regular oil changes (data updates), tire rotations (retraining), warning light checks (monitoring alerts), and eventually an upgrade (model replacement). Without maintenance, even a great model breaks down.
+  </div>
+
+  <h3 class="subsection">4.4.1 — Documentation for Maintenance</h3>
+  <div class="prose">
+    <p>When the engineer who built the model leaves the company, everything needed to run, debug, update, and improve the system must be in writing. There are four documentation types every production AI system needs.</p>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">💻</div>
+      <h4>Code Documentation</h4>
+      <p>Inline comments, docstrings, API docs. What each function does, what inputs it expects, what it returns.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🏛️</div>
+      <h4>Architecture Documentation</h4>
+      <p>System design, data flow diagrams, infrastructure setup. The big picture of how all the pieces connect.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🚀</div>
+      <h4>Deployment Documentation</h4>
+      <p>How to update the model, roll back to a previous version, and respond to specific failure modes.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🔧</div>
+      <h4>Troubleshooting Guide</h4>
+      <p>Common failure modes, what causes them, and step-by-step resolution procedures.</p>
+    </div>
+  </div>
+
+  <h3 class="subsection">4.4.2 — Training Support Teams</h3>
+  <div class="prose">
+    <p>Support teams are the frontline of AI reliability. They need to understand what the model does, recognize when something is wrong, and know who to escalate to — without needing to understand the underlying math.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr class="th-44">
+          <th>Support Role</th>
+          <th>What They Need to Know</th>
+          <th>Sample Training Topic</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Technical Support</strong></td><td>Model behavior, troubleshooting, escalation triggers, performance metrics</td><td>"Why did the model return a null prediction for this input type?"</td></tr>
+        <tr><td><strong>User-Facing Support</strong></td><td>How to explain model outputs in plain language; common user misunderstandings</td><td>"The model gave a score of 0.43 — what do I tell the customer?"</td></tr>
+        <tr><td><strong>Operations</strong></td><td>Monitoring dashboards, alert interpretation, SLA tracking</td><td>"Response time exceeded threshold — what are the next steps?"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subsection">4.4.3 — Feedback Mechanism Implementation</h3>
+  <div class="process-flow">
+    <div class="flow-step flow-44">Collect Feedback</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-44">Validate Quality</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-44">Prioritize Items</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-44">Implement Fixes</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step flow-44">Notify Users</div>
+  </div>
+  <div class="prose" style="margin-top:16px;">
+    <p>Feedback channels include: user interface reports, API logs, support tickets, and domain expert reviews. Each item must be categorized (prediction accuracy, usability, performance, feature request) before it can be effectively prioritized and acted on.</p>
+  </div>
+
+  <h3 class="subsection">4.4.4 — Drift Detection Implementation</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr class="th-44">
+          <th>Drift Type</th>
+          <th>What Changed</th>
+          <th>Detection Method</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Data Drift</strong></td><td>Input data distribution shifts</td><td>Kolmogorov-Smirnov test; distribution monitoring</td><td>Patient age range shifts as hospital serves a new population</td></tr>
+        <tr><td><strong>Concept Drift</strong></td><td>Relationship between inputs and outputs changes</td><td>Accuracy degradation monitoring; KL divergence</td><td>Post-pandemic, "working from home" stops being unusual — location data loses fraud signal</td></tr>
+        <tr><td><strong>Prior Probability Drift</strong></td><td>Class distribution shifts</td><td>Track class frequency over time</td><td>Suddenly 15% of loans are defaulting instead of 3% — training proportions no longer match reality</td></tr>
+        <tr><td><strong>Seasonal Drift</strong></td><td>Cyclical patterns the model wasn't trained on</td><td>Time-series monitoring vs. historical baseline</td><td>Holiday shopping creates transaction patterns the model flags as fraud</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subsection">4.4.5 — New Data Gathering Implementation</h3>
+  <div class="prose">
+    <p>A model is only as current as its data. Building a systematic pipeline for continuously collecting, validating, and ingesting new data is what separates a model that ages gracefully from one that quietly degrades.</p>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">🔄</div>
+      <h4>Continuous Collection</h4>
+      <p>Real-time data streaming from production systems feeds new examples into a staging buffer for review.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">📅</div>
+      <h4>Batch Collection</h4>
+      <p>Scheduled harvesting (e.g., weekly snapshots of new EHR records) for less time-sensitive model updates.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">🎯</div>
+      <h4>Active Learning</h4>
+      <p>Model flags its own "uncertain" predictions and routes them for human labeling — highest value training data at lowest annotation cost.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">👥</div>
+      <h4>Crowdsourcing</h4>
+      <p>Human-in-the-loop labeling for ambiguous cases. Especially used in healthcare where radiologist review doubles as ground-truth generation.</p>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-label">Continuous Learning Pipeline</div>
+    <div class="pipeline-row">
+      <div class="p-node" style="background:var(--c44-light); color:var(--c44); border:1.5px solid var(--c44-mid);">Data Sources</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c44-light); color:var(--c44); border:1.5px solid var(--c44-mid);">Quality Validation</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c44-light); color:var(--c44); border:1.5px solid var(--c44-mid);">Drift Detection</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c44-light); color:var(--c44); border:1.5px solid var(--c44-mid);">Model Retraining</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c44-light); color:var(--c44); border:1.5px solid var(--c44-mid);">Performance Eval</div>
+      <div class="p-arrow">→</div>
+      <div class="p-node" style="background:var(--c44-light); color:var(--c44); border:1.5px solid var(--c44-mid);">Deployment</div>
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab-buttons">
+      <button class="tab-btn active-44" onclick="switchTab('e44','health44','44')">🏥 Healthcare Support</button>
+      <button class="tab-btn" onclick="switchTab('e44','finance44','44')">🏦 Finance Support</button>
+    </div>
+    <div id="health44" class="tab-panel active">
+      <h4>Medical Imaging AI — Support Structure</h4>
+      <ul>
+        <li><strong>Documentation:</strong> Model card lists equipment compatibility, training demographics, accuracy by condition type, known edge cases</li>
+        <li><strong>Support Training:</strong> Radiologists complete 2-hour certification; front-desk staff complete 30-min "what to tell patients" module</li>
+        <li><strong>Drift Detection:</strong> Daily comparison of predicted vs. confirmed diagnoses; alert if weekly accuracy drops &gt;3% from baseline</li>
+        <li><strong>Data Refresh:</strong> 500 new confirmed cases added to training set monthly; quarterly model retraining cycle</li>
+        <li><strong>Active Learning:</strong> Cases where model confidence is below 65% are auto-routed to senior radiologist for review and labeling</li>
+      </ul>
+    </div>
+    <div id="finance44" class="tab-panel">
+      <h4>Credit Risk Model — Support Structure</h4>
+      <ul>
+        <li><strong>Documentation:</strong> Model card covers regulatory compliance (FCRA, ECOA), feature list with business rationale, performance by applicant segment</li>
+        <li><strong>Support Training:</strong> Loan officers get weekly "model spotlight" updates; compliance team reviews decisions quarterly</li>
+        <li><strong>Drift Detection:</strong> Default rate monitored weekly; if it deviates &gt;0.5% from prediction, automatic review triggered</li>
+        <li><strong>Data Refresh:</strong> New application outcomes logged continuously; model retrained quarterly with 6-month performance window</li>
+        <li><strong>Feedback Loop:</strong> Every denied application with customer appeal is manually reviewed and flagged for retraining if model error confirmed</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- EXAM QUESTIONS -->
+<!-- ══════════════════════════════════════════ -->
+<section id="questions">
+  <div class="q-header">
+    <h2>Certiport-Style Exam Questions</h2>
+    <p>25 questions • 5 per section • Click an option to check your answer, then reveal the full explanation.</p>
+  </div>
+
+  <!-- ── 4.1 Questions ── -->
+
+  <div class="question-card" id="q1">
+    <div class="q-meta"><span class="q-num">Q1</span><span class="q-tag q-tag-41">4.1 — Training Users</span></div>
+    <div class="q-text">A hospital deploys an AI model trained on data from urban hospitals to a rural clinic. Users report unexpected inaccuracies. Which model limitation category BEST explains this issue?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q1','A')">A. Scope restrictions — the model was not designed for any clinical setting</button>
+      <button class="q-option" onclick="checkAnswer(this,'q1','B')">B. Data limitations — the model performs poorly on populations not represented in training</button>
+      <button class="q-option" onclick="checkAnswer(this,'q1','C')">C. Accuracy boundaries — the model has a low overall accuracy rate</button>
+      <button class="q-option" onclick="checkAnswer(this,'q1','D')">D. Temporal constraints — the model is outdated</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q1')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q1')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q1">
+      <strong>Correct Answer: B</strong><br>
+      This is a classic data limitation problem — the model learned patterns from urban hospital data (different equipment, different patient demographics, different disease prevalence) and struggles when that distribution doesn't match the rural deployment context. The model scope (clinical AI) is correct, so A is wrong. There's no mention of overall low accuracy (C) or outdated training data (D).
+      <div class="teacher-note">Students often confuse "data limitations" with "scope restrictions." The analogy: a French dictionary is "in scope" for a French sentence but fails on Creole — same domain, wrong training data.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q2">
+    <div class="q-meta"><span class="q-num">Q2</span><span class="q-tag q-tag-41">4.1 — Training Users</span></div>
+    <div class="q-text">When writing user-facing documentation for an AI fraud detection system, which of the following is the MOST effective way to communicate model output thresholds?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q2','A')">A. "The algorithm assigns risk scores using logistic regression coefficients."</button>
+      <button class="q-option" onclick="checkAnswer(this,'q2','B')">B. "High-risk transactions will be flagged automatically."</button>
+      <button class="q-option" onclick="checkAnswer(this,'q2','C')">C. "Scores above 0.8 require manual review; scores above 0.95 trigger immediate account suspension."</button>
+      <button class="q-option" onclick="checkAnswer(this,'q2','D')">D. "The model has 97% accuracy and rarely makes mistakes."</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q2')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q2')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q2">
+      <strong>Correct Answer: C</strong><br>
+      Effective threshold documentation must be specific and actionable. Option C gives users exact decision boundaries and the action tied to each. A uses technical jargon. B is vague ("high-risk" is undefined). D overpromises — "rarely makes mistakes" sets expectations the model may not consistently meet.
+      <div class="teacher-note">Ask students: "If you're a fraud analyst on a Monday morning, which documentation actually tells you what to do?" The specificity of C is the differentiator.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q3">
+    <div class="q-meta"><span class="q-num">Q3</span><span class="q-tag q-tag-41">4.1 — Training Users</span></div>
+    <div class="q-text">A bank is creating documentation for a new loan approval AI. Which documentation type should a branch manager (non-technical) receive FIRST?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q3','A')">A. Technical Reference with full API documentation</button>
+      <button class="q-option" onclick="checkAnswer(this,'q3','B')">B. Executive Summary covering business value and key metrics</button>
+      <button class="q-option" onclick="checkAnswer(this,'q3','C')">C. Troubleshooting Guide with error codes</button>
+      <button class="q-option" onclick="checkAnswer(this,'q3','D')">D. Architecture Documentation with system design diagrams</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q3')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q3')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q3">
+      <strong>Correct Answer: B</strong><br>
+      The documentation hierarchy matches audience to detail level. A branch manager is a business stakeholder, not a technical user — they need the "so what" (business value, performance metrics, timeline). Technical reference, troubleshooting guides, and architecture docs are for engineers and IT staff.
+      <div class="teacher-note">Use the newspaper analogy: a headline is an executive summary, the full article is a user guide, footnotes are the technical reference. You give different people different sections.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q4">
+    <div class="q-meta"><span class="q-num">Q4</span><span class="q-tag q-tag-41">4.1 — Training Users</span></div>
+    <div class="q-text">Which of the following is the BEST example of effective customer expectation management for an AI chatbot?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q4','A')">A. "Our AI chatbot can handle any customer question with human-level understanding."</button>
+      <button class="q-option" onclick="checkAnswer(this,'q4','B')">B. "The chatbot handles 80% of routine inquiries and escalates complex cases to a human agent within 3 conversation turns."</button>
+      <button class="q-option" onclick="checkAnswer(this,'q4','C')">C. "The AI is still learning but will improve over time."</button>
+      <button class="q-option" onclick="checkAnswer(this,'q4','D')">D. "This is a beta product — use with caution."</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q4')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q4')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q4">
+      <strong>Correct Answer: B</strong><br>
+      B is specific, measurable, and sets a clear boundary without overpromising. A overpromises ("any question," "human-level") in a way that cannot be guaranteed. C is vague and doesn't commit to anything useful. D erodes trust by treating the product as experimental when it's deployed to real customers.
+      <div class="teacher-note">The Certiport exam tests students' ability to recognize "concrete and measurable" vs. "vague or exaggerated" expectation-setting language.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q5">
+    <div class="q-meta"><span class="q-num">Q5</span><span class="q-tag q-tag-41">4.1 — Training Users</span></div>
+    <div class="q-text">A model was trained on 2019–2021 transaction data and deployed in 2024. Users notice it misclassifies many new transaction patterns. Which limitation is PRIMARILY responsible?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q5','A')">A. Scope restrictions</button>
+      <button class="q-option" onclick="checkAnswer(this,'q5','B')">B. Data limitations</button>
+      <button class="q-option" onclick="checkAnswer(this,'q5','C')">C. Temporal constraints</button>
+      <button class="q-option" onclick="checkAnswer(this,'q5','D')">D. Accuracy boundaries</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q5')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q5')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q5">
+      <strong>Correct Answer: C</strong><br>
+      Temporal constraints refer specifically to model degradation over time as data patterns change. The model is 3 years old in a world where payment behaviors, platforms, and fraud patterns have all evolved. This is distinct from data limitations (which refers to demographic/population gaps) and accuracy boundaries (which is an inherent ceiling, not a time-related decline).
+      <div class="teacher-note">Tip for students: when the question mentions a time gap between training and deployment, think "temporal constraints" first.</div>
+    </div>
+  </div>
+
+  <!-- ── 4.2 Questions ── -->
+
+  <div class="question-card" id="q6">
+    <div class="q-meta"><span class="q-num">Q6</span><span class="q-tag q-tag-42">4.2 — Production Challenges</span></div>
+    <div class="q-text">A fraud detection model performs well in development but begins missing a new type of attack pattern two months after deployment. What type of production challenge is this?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q6','A')">A. Scalability issue</button>
+      <button class="q-option" onclick="checkAnswer(this,'q6','B')">B. Concept drift</button>
+      <button class="q-option" onclick="checkAnswer(this,'q6','C')">C. Integration failure</button>
+      <button class="q-option" onclick="checkAnswer(this,'q6','D')">D. Documentation gap</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q6')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q6')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q6">
+      <strong>Correct Answer: B</strong><br>
+      Concept drift occurs when the relationship between inputs and outputs changes — here, fraudulent transactions now look different from how they looked in training data. The model still receives the same types of data (no integration failure) and isn't overwhelmed (no scalability issue). The problem is that the model's "concept" of what fraud looks like is now outdated.
+      <div class="teacher-note">Contrast with "data drift" (the input distribution shifts) vs. "concept drift" (the meaning of those inputs changes). A new fraud attack pattern is concept drift.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q7">
+    <div class="q-meta"><span class="q-num">Q7</span><span class="q-tag q-tag-42">4.2 — Production Challenges</span></div>
+    <div class="q-text">A recommendation AI works perfectly with 10,000 test users but crashes when deployed to 8 million users. What was the FIRST step the team should have taken to prevent this?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q7','A')">A. Improved the model's accuracy metrics</button>
+      <button class="q-option" onclick="checkAnswer(this,'q7','B')">B. Conducted load testing under realistic production conditions before launch</button>
+      <button class="q-option" onclick="checkAnswer(this,'q7','C')">C. Added more training data</button>
+      <button class="q-option" onclick="checkAnswer(this,'q7','D')">D. Deployed gradually to 1,000 users first</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q7')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q7')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q7">
+      <strong>Correct Answer: B</strong><br>
+      The FIRST step in scalability planning is stress testing before launch — specifically load testing at 10× or 100× expected traffic to find breaking points while you can still fix them. D (gradual deployment) is also good practice but is a deployment strategy, not a pre-launch prevention step. The question asks what should have been done FIRST.
+      <div class="teacher-note">Watch for "FIRST step" framing in Certiport questions — it's specifically testing whether students know the correct sequence of actions, not just valid actions.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q8">
+    <div class="q-meta"><span class="q-num">Q8</span><span class="q-tag q-tag-42">4.2 — Production Challenges</span></div>
+    <div class="q-text">Which of the following is an example of data drift (NOT concept drift)?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q8','A')">A. Fraudsters develop entirely new attack methods the model has never seen</button>
+      <button class="q-option" onclick="checkAnswer(this,'q8','B')">B. A new type of medical imaging equipment produces slightly different pixel brightness values</button>
+      <button class="q-option" onclick="checkAnswer(this,'q8','C')">C. Economic recession causes loan default patterns to shift significantly</button>
+      <button class="q-option" onclick="checkAnswer(this,'q8','D')">D. Remote work becomes normal and changes what "unusual location" means for fraud detection</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q8')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q8')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q8">
+      <strong>Correct Answer: B</strong><br>
+      Data drift = the input data itself looks different (new equipment changes pixel values). Concept drift = the meaning/relationship changes (A: new fraud methods; C: economic shift changes what predicts default; D: behavioral norm shifts). B is purely a feature distribution shift without a change in underlying patterns.
+      <div class="teacher-note">Use the "same input, same meaning?" test: if the input changed but the meaning is the same, it's data drift. If the meaning changed, it's concept drift.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q9">
+    <div class="q-meta"><span class="q-num">Q9</span><span class="q-tag q-tag-42">4.2 — Production Challenges</span></div>
+    <div class="q-text">A hospital AI system begins showing reduced accuracy after six months. An investigation reveals that the input data distribution looks very similar to the training period. What should the team investigate NEXT?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q9','A')">A. Hardware failures in the inference server</button>
+      <button class="q-option" onclick="checkAnswer(this,'q9','B')">B. Concept drift — whether the relationship between symptoms and outcomes has changed</button>
+      <button class="q-option" onclick="checkAnswer(this,'q9','C')">C. API integration failures</button>
+      <button class="q-option" onclick="checkAnswer(this,'q9','D')">D. Bias in the original training data</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q9')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q9')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q9">
+      <strong>Correct Answer: B</strong><br>
+      If input distribution is stable but accuracy dropped, data drift is ruled out. The next logical investigation is concept drift — maybe treatment protocols changed, a new variant of a disease emerged, or clinical practices shifted. A and C are infrastructure issues unrelated to model accuracy. D (original training bias) would have been visible from day one.
+      <div class="teacher-note">Good detective question — eliminate data drift (given info), then reason to concept drift as next hypothesis.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q10">
+    <div class="q-meta"><span class="q-num">Q10</span><span class="q-tag q-tag-42">4.2 — Production Challenges</span></div>
+    <div class="q-text">Which TWO mitigation strategies are MOST appropriate for addressing scalability challenges in a production AI system? (Choose TWO)</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q10','A','multi')">A. Increase model complexity to improve accuracy</button>
+      <button class="q-option" onclick="checkAnswer(this,'q10','B','multi')">B. Apply model compression techniques such as quantization and pruning</button>
+      <button class="q-option" onclick="checkAnswer(this,'q10','C','multi')">C. Design the architecture to scale horizontally by adding more instances</button>
+      <button class="q-option" onclick="checkAnswer(this,'q10','D','multi')">D. Retrain the model with more recent data</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q10')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q10')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q10">
+      <strong>Correct Answers: B and C</strong><br>
+      Scalability solutions work at the model level (B: compression reduces memory and compute requirements) and architecture level (C: horizontal scaling adds capacity without changing the model). A increases complexity and resource needs — the opposite of helpful. D addresses drift, not scale.
+      <div class="teacher-note">The "Choose TWO" format mirrors actual Certiport questions. Remind students to always read for this instruction — selecting only one will cost points.</div>
+    </div>
+  </div>
+
+  <!-- ── 4.3 Questions ── -->
+
+  <div class="question-card" id="q11">
+    <div class="q-meta"><span class="q-num">Q11</span><span class="q-tag q-tag-43">4.3 — Pipelines & Integration</span></div>
+    <div class="q-text">Which statement BEST describes the relationship between the training pipeline and the prediction pipeline?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q11','A')">A. They are completely independent — training is done once and the prediction pipeline runs separately</button>
+      <button class="q-option" onclick="checkAnswer(this,'q11','B')">B. The feature engineering steps must be identical in both pipelines to ensure consistent predictions</button>
+      <button class="q-option" onclick="checkAnswer(this,'q11','C')">C. The prediction pipeline replaces the training pipeline once the model is deployed</button>
+      <button class="q-option" onclick="checkAnswer(this,'q11','D')">D. Training pipelines handle real-time data while prediction pipelines handle historical data</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q11')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q11')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q11">
+      <strong>Correct Answer: B</strong><br>
+      If training normalizes data one way and prediction normalizes it differently, the model's learned patterns will never match the incoming data. Consistent preprocessing is fundamental. A is dangerously wrong — they're not independent. C misunderstands the purpose. D reverses the actual functions.
+      <div class="teacher-note">Analogy: you bake a cake with certain ingredients in a certain order (training), then try to taste a cake made with a slightly different order (prediction). Even small preprocessing differences produce unexpected results.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q12">
+    <div class="q-meta"><span class="q-num">Q12</span><span class="q-tag q-tag-43">4.3 — Pipelines & Integration</span></div>
+    <div class="q-text">A healthcare company needs to integrate an AI diagnosis model with an existing EHR system. Which integration pattern would be MOST appropriate for a real-time patient triage alert (must complete in under 300ms)?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q12','A')">A. Batch processing — schedule predictions overnight</button>
+      <button class="q-option" onclick="checkAnswer(this,'q12','B')">B. Event-driven asynchronous message queue</button>
+      <button class="q-option" onclick="checkAnswer(this,'q12','C')">C. Synchronous REST API call with a real-time response</button>
+      <button class="q-option" onclick="checkAnswer(this,'q12','D')">D. Manual data export and re-import on a weekly cycle</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q12')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q12')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q12">
+      <strong>Correct Answer: C</strong><br>
+      When the use case is real-time and has a hard latency requirement (&lt;300ms), a synchronous API call is the right pattern — it waits for the result before proceeding. Batch processing and message queues are inherently asynchronous and would introduce delays that violate the real-time requirement. Manual export is not automation at all.
+      <div class="teacher-note">Key decision rule: "Does the user/system need to wait for the answer right now?" → Synchronous. "Can we process it later?" → Asynchronous/batch.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q13">
+    <div class="q-meta"><span class="q-num">Q13</span><span class="q-tag q-tag-43">4.3 — Pipelines & Integration</span></div>
+    <div class="q-text">A bank collects user feedback on its AI loan decisions. Analysts regularly mark model decisions as "correct" or "incorrect." What type of feedback is this?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q13','A')">A. Implicit feedback</button>
+      <button class="q-option" onclick="checkAnswer(this,'q13','B')">B. Seasonal feedback</button>
+      <button class="q-option" onclick="checkAnswer(this,'q13','C')">C. Expert feedback</button>
+      <button class="q-option" onclick="checkAnswer(this,'q13','D')">D. A/B testing feedback</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q13')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q13')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q13">
+      <strong>Correct Answer: C</strong><br>
+      Expert feedback comes from domain specialists validating model outputs — in this case, loan analysts using their professional judgment to evaluate AI decisions. Implicit feedback is inferred from behavior (e.g., a customer clicking "apply again"). A/B testing compares two model versions. "Seasonal" is not a feedback category.
+      <div class="teacher-note">The difference between explicit feedback (users rating the output) and expert feedback (specialists evaluating accuracy) is a common Certiport distractor pair.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q14">
+    <div class="q-meta"><span class="q-num">Q14</span><span class="q-tag q-tag-43">4.3 — Pipelines & Integration</span></div>
+    <div class="q-text">A team is deploying a new version of their image recognition model. They want to test it in production without exposing all users to potential issues. Which testing strategy is MOST appropriate?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q14','A')">A. Replace the current model entirely and monitor for complaints</button>
+      <button class="q-option" onclick="checkAnswer(this,'q14','B')">B. Run the new model in shadow mode alongside the existing model, then compare performance before rollout</button>
+      <button class="q-option" onclick="checkAnswer(this,'q14','C')">C. Test the new model only on historical data</button>
+      <button class="q-option" onclick="checkAnswer(this,'q14','D')">D. Conduct stress testing with 1,000 concurrent users</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q14')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q14')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q14">
+      <strong>Correct Answer: B</strong><br>
+      Champion/Challenger (shadow mode) runs the new model in parallel on live data without acting on its decisions. This lets you compare real-world performance safely before committing. A risks harming users. C only tests on past data — real production is the test. D is a load test, not a model comparison strategy.
+      <div class="teacher-note">Shadow mode is also called "dark launch" in engineering. The new model runs but its outputs aren't shown to users — teams just compare logs. Great mental image for students.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q15">
+    <div class="q-meta"><span class="q-num">Q15</span><span class="q-tag q-tag-43">4.3 — Pipelines & Integration</span></div>
+    <div class="q-text">A company implements an API gateway for its AI microservices. Which of the following is NOT a primary function of an API gateway?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q15','A')">A. Centralized authentication and access control</button>
+      <button class="q-option" onclick="checkAnswer(this,'q15','B')">B. Rate limiting to prevent system overload</button>
+      <button class="q-option" onclick="checkAnswer(this,'q15','C')">C. Training the AI model on new data</button>
+      <button class="q-option" onclick="checkAnswer(this,'q15','D')">D. Routing requests to appropriate AI services</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q15')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q15')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q15">
+      <strong>Correct Answer: C</strong><br>
+      An API gateway handles traffic management (authentication, rate limiting, routing, versioning). Training AI models is handled by the training pipeline — a completely separate concern. All other options (A, B, D) are core API gateway functions.
+      <div class="teacher-note">Not-function questions test whether students understand scope boundaries. The gateway is infrastructure, not the ML system itself.</div>
+    </div>
+  </div>
+
+  <!-- ── 4.4 Questions ── -->
+
+  <div class="question-card" id="q16">
+    <div class="q-meta"><span class="q-num">Q16</span><span class="q-tag q-tag-44">4.4 — Supporting the Solution</span></div>
+    <div class="q-text">Which documentation type is MOST critical to ensure that an AI model can be updated by a new team member who did not build the original system?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q16','A')">A. Executive summary</button>
+      <button class="q-option" onclick="checkAnswer(this,'q16','B')">B. Architecture documentation with system design and data flow diagrams</button>
+      <button class="q-option" onclick="checkAnswer(this,'q16','C')">C. A/B testing reports</button>
+      <button class="q-option" onclick="checkAnswer(this,'q16','D')">D. User satisfaction surveys</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q16')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q16')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q16">
+      <strong>Correct Answer: B</strong><br>
+      Architecture documentation explains how all the pieces fit together — without it, a new engineer cannot safely make changes without risking breaking downstream systems. An executive summary (A) gives business context but no operational guidance. A/B reports and satisfaction surveys are evaluative, not operational.
+      <div class="teacher-note">The "bus factor" concept: if the one person who knows the system gets hit by a bus, can the team recover? Architecture documentation is the answer.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q17">
+    <div class="q-meta"><span class="q-num">Q17</span><span class="q-tag q-tag-44">4.4 — Supporting the Solution</span></div>
+    <div class="q-text">A credit risk model was trained in 2022 during a period of economic growth. In 2024, following a recession, default rates have risen significantly. What type of drift is MOST likely occurring?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q17','A')">A. Data drift</button>
+      <button class="q-option" onclick="checkAnswer(this,'q17','B')">B. Seasonal drift</button>
+      <button class="q-option" onclick="checkAnswer(this,'q17','C')">C. Prior probability drift</button>
+      <button class="q-option" onclick="checkAnswer(this,'q17','D')">D. API integration drift</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q17')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q17')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q17">
+      <strong>Correct Answer: C</strong><br>
+      Prior probability drift = the class distribution changes. The model was trained when 3% of loans defaulted; now 15% do. The proportion of the target class in real data no longer matches training. This is distinct from data drift (input features shift) or concept drift (the relationships change). "API integration drift" is not a real drift category.
+      <div class="teacher-note">Prior probability drift is the trickiest of the four. Help students with: "If the world suddenly has MORE of X than when we trained, that's prior probability drift."</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q18">
+    <div class="q-meta"><span class="q-num">Q18</span><span class="q-tag q-tag-44">4.4 — Supporting the Solution</span></div>
+    <div class="q-text">A bank notices that the AI flags legitimate holiday shopping transactions as fraud every December. What drift type describes this problem, and what is the recommended long-term solution?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q18','A')">A. Data drift — retrain with more data from non-holiday periods</button>
+      <button class="q-option" onclick="checkAnswer(this,'q18','B')">B. Seasonal drift — retrain or adjust decision thresholds using holiday-period data</button>
+      <button class="q-option" onclick="checkAnswer(this,'q18','C')">C. Concept drift — completely rebuild the model</button>
+      <button class="q-option" onclick="checkAnswer(this,'q18','D')">D. Prior probability drift — increase the fraud detection threshold permanently</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q18')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q18')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q18">
+      <strong>Correct Answer: B</strong><br>
+      Seasonal drift refers to cyclical patterns the model wasn't adequately trained on. The solution is to include seasonal data in retraining or adjust thresholds seasonally — not to remove non-holiday data (A would make it worse), not a full rebuild (C is overkill), and not a permanent threshold change (D fails for the rest of the year).
+      <div class="teacher-note">Seasonal drift is the most intuitive to explain — every holiday shopping season, Netflix recommendations and fraud models both need adjustment. Relatable and exam-testable.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q19">
+    <div class="q-meta"><span class="q-num">Q19</span><span class="q-tag q-tag-44">4.4 — Supporting the Solution</span></div>
+    <div class="q-text">Which data collection strategy is MOST effective for gathering the highest-value training examples with the LEAST annotation effort?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q19','A')">A. Continuous collection — stream all production data into a training buffer</button>
+      <button class="q-option" onclick="checkAnswer(this,'q19','B')">B. Batch collection — schedule weekly data snapshots</button>
+      <button class="q-option" onclick="checkAnswer(this,'q19','C')">C. Active learning — route cases where the model is most uncertain to human reviewers</button>
+      <button class="q-option" onclick="checkAnswer(this,'q19','D')">D. Crowdsourcing — distribute all ambiguous cases to external labelers</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q19')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q19')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q19">
+      <strong>Correct Answer: C</strong><br>
+      Active learning deliberately targets the examples where the model is most uncertain — these are exactly the cases where labeling adds the most value. Streaming all data (A) creates massive annotation burden for little gain. Batch collection (B) is less targeted. Crowdsourcing (D) is a labeling mechanism, not a selection strategy.
+      <div class="teacher-note">Active learning is a key concept for the Certiport exam. Frame it as "the model tells us what it needs to learn next." That stuck with many past students.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q20">
+    <div class="q-meta"><span class="q-num">Q20</span><span class="q-tag q-tag-44">4.4 — Supporting the Solution</span></div>
+    <div class="q-text">A support team member notices that the AI model's response time has increased from 45ms to 420ms over the past week. According to proper support procedures, what should they do FIRST?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q20','A')">A. Immediately retrain the model with new data</button>
+      <button class="q-option" onclick="checkAnswer(this,'q20','B')">B. Escalate to the ML engineering team and document the observation with timestamps</button>
+      <button class="q-option" onclick="checkAnswer(this,'q20','C')">C. Increase the server's memory allocation</button>
+      <button class="q-option" onclick="checkAnswer(this,'q20','D')">D. Roll back to the previous model version</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q20')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q20')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q20">
+      <strong>Correct Answer: B</strong><br>
+      Support procedures require escalation to the right team with documented observations before taking action. The support member does not have the authority or context to immediately retrain (A), arbitrarily allocate resources (C), or roll back (D) — all of which could make things worse without root cause analysis.
+      <div class="teacher-note">This tests process knowledge. A real Certiport question might phrase it as "What is the APPROPRIATE first step?" — "escalate with documentation" beats "take immediate technical action" for support staff.</div>
+    </div>
+  </div>
+
+  <!-- ── Cross-Section Questions ── -->
+
+  <div class="question-card" id="q21">
+    <div class="q-meta"><span class="q-num">Q21</span><span class="q-tag" style="background:#f0ede8; color:#555;">Cross-Chapter</span></div>
+    <div class="q-text">Which of the following represents the CORRECT order of the production AI deployment lifecycle?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q21','A')">A. Build model → Deploy → Train users → Monitor</button>
+      <button class="q-option" onclick="checkAnswer(this,'q21','B')">B. Train users → Build model → Deploy → Monitor</button>
+      <button class="q-option" onclick="checkAnswer(this,'q21','C')">C. Build model → Train users → Deploy with pipelines → Monitor and support</button>
+      <button class="q-option" onclick="checkAnswer(this,'q21','D')">D. Monitor → Train users → Build model → Deploy</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q21')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q21')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q21">
+      <strong>Correct Answer: C</strong><br>
+      This matches Chapter 4's structure: user training (4.1) and production planning (4.2) happen before deployment; pipelines and integration (4.3) are the deployment layer; support and drift monitoring (4.4) is the ongoing phase. Option A skips user training before deployment — a common real-world mistake.
+      <div class="teacher-note">Good review question — ask students to map each step to the section number (4.1 → 4.2 → 4.3 → 4.4) before checking the answer.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q22">
+    <div class="q-meta"><span class="q-num">Q22</span><span class="q-tag" style="background:#f0ede8; color:#555;">Cross-Chapter</span></div>
+    <div class="q-text">A medical imaging AI produces confidence scores for each diagnosis. A radiologist uses the AI output to immediately sign off on all high-confidence results without review. Which user training failure contributed to this MOST directly?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q22','A')">A. The documentation hierarchy was not followed</button>
+      <button class="q-option" onclick="checkAnswer(this,'q22','B')">B. The radiologist was not trained on escalation procedures and decision boundaries</button>
+      <button class="q-option" onclick="checkAnswer(this,'q22','C')">C. The feedback mechanism was not implemented</button>
+      <button class="q-option" onclick="checkAnswer(this,'q22','D')">D. Drift detection was not configured</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q22')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q22')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q22">
+      <strong>Correct Answer: B</strong><br>
+      Section 4.1.2 covers intended usage documentation — specifically decision boundaries (when to trust vs. question output) and escalation procedures (when to involve human experts). The radiologist is violating both by treating a confidence score as a final diagnosis. This is a training gap, not a technical failure.
+      <div class="teacher-note">Strong case study for discussion: even a 97%-accurate model will miss ~3 out of 100. In a high-stakes clinical context, "high confidence" still requires human verification.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q23">
+    <div class="q-meta"><span class="q-num">Q23</span><span class="q-tag" style="background:#f0ede8; color:#555;">Cross-Chapter</span></div>
+    <div class="q-text">Which TWO of the following are PRIMARY benefits of building a continuous learning pipeline? (Choose TWO)</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q23','A','multi')">A. The model can adapt to new data patterns without requiring manual full retraining cycles</button>
+      <button class="q-option" onclick="checkAnswer(this,'q23','B','multi')">B. The model no longer requires any human oversight once deployed</button>
+      <button class="q-option" onclick="checkAnswer(this,'q23','C','multi')">C. Performance degradation from drift can be detected and addressed automatically</button>
+      <button class="q-option" onclick="checkAnswer(this,'q23','D','multi')">D. All future predictions will be 100% accurate</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q23')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q23')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q23">
+      <strong>Correct Answers: A and C</strong><br>
+      Continuous learning pipelines automate adaptation (A) and drift response (C). They do NOT eliminate human oversight (B — in fact, most require human approval before retraining is deployed) and they definitely don't guarantee 100% accuracy (D — no model ever does).
+      <div class="teacher-note">Watch for the "eliminates human oversight" distractor — it appears frequently on AI ethics-related exam questions. Always false.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q24">
+    <div class="q-meta"><span class="q-num">Q24</span><span class="q-tag" style="background:#f0ede8; color:#555;">Cross-Chapter</span></div>
+    <div class="q-text">A production AI system is receiving 10× its expected transaction volume after a viral marketing campaign. The system is slowing significantly. What is the MOST immediate architectural solution?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q24','A')">A. Retrain the model to be more efficient</button>
+      <button class="q-option" onclick="checkAnswer(this,'q24','B')">B. Scale horizontally by deploying additional service instances to distribute load</button>
+      <button class="q-option" onclick="checkAnswer(this,'q24','C')">C. Increase the accuracy threshold to reduce the number of predictions made</button>
+      <button class="q-option" onclick="checkAnswer(this,'q24','D')">D. Switch to batch processing for all requests</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q24')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q24')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q24">
+      <strong>Correct Answer: B</strong><br>
+      Horizontal scaling (adding more instances) is the fastest way to handle unexpected load spikes in a well-designed microservices architecture. Retraining (A) doesn't address infrastructure capacity. Adjusting accuracy thresholds (C) doesn't reduce compute. Switching to batch (D) would fail real-time SLAs.
+      <div class="teacher-note">Horizontal vs. vertical scaling is a classic architecture concept: horizontal = add more instances; vertical = upgrade one bigger server. Horizontal wins for AI scale problems.</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="q25">
+    <div class="q-meta"><span class="q-num">Q25</span><span class="q-tag" style="background:#f0ede8; color:#555;">Cross-Chapter</span></div>
+    <div class="q-text">An AI team is about to deploy a high-stakes loan approval model. Which action should happen LAST in the deployment sequence?</div>
+    <div class="q-options">
+      <button class="q-option" onclick="checkAnswer(this,'q25','A')">A. Set up drift detection and monitoring alerts</button>
+      <button class="q-option" onclick="checkAnswer(this,'q25','B')">B. Train loan officers on how to interpret model outputs and escalation procedures</button>
+      <button class="q-option" onclick="checkAnswer(this,'q25','C')">C. Conduct load testing in a staging environment</button>
+      <button class="q-option" onclick="checkAnswer(this,'q25','D')">D. Run the model at full production scale with real applicants</button>
+    </div>
+    <div class="q-actions">
+      <button class="btn-reveal" onclick="revealExplanation('q25')">Show Explanation</button>
+      <button class="btn-reset" onclick="resetQuestion('q25')">Reset</button>
+    </div>
+    <div class="q-explanation" id="exp-q25">
+      <strong>Correct Answer: D</strong><br>
+      Full production deployment with real applicants is the final step — everything else (monitoring setup, user training, load testing) should be completed before any real customer is affected. This question tests sequencing: you monitor before you're live (A), train users before launch (B), load test in staging (C), then go live (D).
+      <div class="teacher-note">Great closing question for the chapter — maps directly to the deployment lifecycle and reinforces that "going live" is always the last, not first, step in responsible AI deployment.</div>
+    </div>
+  </div>
+
+</section>
+</main>
+
+<footer>
+  <strong>ITS OD 307 — Artificial Intelligence Deep Dive</strong><br>
+  Chapter 4 · AI/ML Production Deployment · Classroom Reference<br>
+  Textbook: <em>Artificial Intelligence Deep Dive</em> by Santosh Srinivasaiah
+</footer>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('progress-bar').style.width = (window.scrollY / total * 100) + '%';
+});
+
+// Nav active state
+const sections = ['s41','s42','s43','s44','questions'];
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 100) current = id;
+  });
+  nav.querySelectorAll('a').forEach((a, i) => {
+    a.className = '';
+    if (sections[i] === current) {
+      a.className = sections[i] === 'questions' ? 'active-q' : 'active-' + sections[i].replace('s','');
+    }
+  });
+});
+
+// Tabs
+function switchTab(group, id, color) {
+  const container = document.getElementById(id).closest('.tab-container');
+  container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  container.querySelectorAll('.tab-btn').forEach(b => b.className = 'tab-btn');
+  document.getElementById(id).classList.add('active');
+  event.target.className = 'tab-btn active-' + color;
+}
+
+// Questions
+const correctAnswers = {
+  q1:'B', q2:'C', q3:'B', q4:'B', q5:'C',
+  q6:'B', q7:'B', q8:'B', q9:'B', q10:['B','C'],
+  q11:'B', q12:'C', q13:'C', q14:'B', q15:'C',
+  q16:'B', q17:'C', q18:'B', q19:'C', q20:'B',
+  q21:'C', q22:'B', q23:['A','C'], q24:'B', q25:'D'
+};
+
+const multiSelected = {};
+
+function checkAnswer(btn, qId, letter, type) {
+  const correct = correctAnswers[qId];
+  if (type === 'multi') {
+    if (!multiSelected[qId]) multiSelected[qId] = new Set();
+    const set = multiSelected[qId];
+    if (btn.classList.contains('selected-multi')) {
+      btn.classList.remove('selected-multi');
+      set.delete(letter);
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    } else {
+      set.add(letter);
+      btn.style.background = '#e0f0ff';
+      btn.style.borderColor = '#3b82f6';
+      btn.style.color = '#1e40af';
+      btn.classList.add('selected-multi');
+    }
+    if (set.size === correct.length) {
+      const card = document.getElementById(qId);
+      card.querySelectorAll('.q-option').forEach(b => {
+        b.classList.add('disabled');
+        const l = b.textContent.trim()[0];
+        b.style.background = ''; b.style.borderColor = ''; b.style.color = '';
+        b.classList.remove('selected-multi');
+        if (correct.includes(l)) b.classList.add('correct');
+        else if (set.has(l)) b.classList.add('incorrect');
+      });
+    }
+    return;
+  }
+  const card = document.getElementById(qId);
+  card.querySelectorAll('.q-option').forEach(b => b.classList.add('disabled'));
+  if (letter === correct) {
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('incorrect');
+    card.querySelectorAll('.q-option').forEach(b => {
+      if (b.textContent.trim()[0] === correct) b.classList.add('correct');
+    });
+  }
+}
+
+function revealExplanation(qId) {
+  const exp = document.getElementById('exp-' + qId);
+  exp.classList.toggle('show');
+  const btn = exp.previousElementSibling.querySelector('.btn-reveal');
+  if (btn) btn.textContent = exp.classList.contains('show') ? 'Hide Explanation' : 'Show Explanation';
+}
+
+function resetQuestion(qId) {
+  const card = document.getElementById(qId);
+  card.querySelectorAll('.q-option').forEach(b => {
+    b.className = 'q-option';
+    b.style.background = ''; b.style.borderColor = ''; b.style.color = '';
+    b.onclick = b.onclick; // preserve
+  });
+  // Re-bind
+  const opts = card.querySelectorAll('.q-option');
+  opts.forEach(b => {
+    b.classList.remove('correct','incorrect','disabled','selected-multi');
+    b.style.background = ''; b.style.borderColor = ''; b.style.color = '';
+  });
+  multiSelected[qId] = new Set();
+  document.getElementById('exp-' + qId).classList.remove('show');
+  const revBtn = card.querySelector('.btn-reveal');
+  if (revBtn) revBtn.textContent = 'Show Explanation';
+}
+</script>
+</body>
+</html>

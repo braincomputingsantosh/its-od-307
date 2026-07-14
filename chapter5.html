@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 5 — Maintaining & Monitoring AI in Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #f8f7f4;
+    --bg2:       #ffffff;
+    --surface:   #ffffff;
+    --surface2:  #f3f2ee;
+    --border:    #e4e1d8;
+    --border2:   #d0cdc4;
+
+    --teal:      #0d7a6b;
+    --teal-lt:   #e6f4f1;
+    --teal-mid:  #b2ddd7;
+
+    --amber:     #c8710a;
+    --amber-lt:  #fdf3e7;
+    --amber-mid: #f5c688;
+
+    --blue:      #1d5fa8;
+    --blue-lt:   #e8f0fb;
+    --blue-mid:  #aac5ee;
+
+    --red:       #b91c1c;
+    --red-lt:    #fef2f2;
+    --red-mid:   #f5a0a0;
+
+    --slate:     #374151;
+    --text:      #1a1a1a;
+    --text-muted:#6b7280;
+    --text-dim:  #4b5563;
+
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --serif: 'Fraunces', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0.9rem 0;
+  }
+
+  .header-badge {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--teal);
+    border: 1.5px solid var(--teal-mid);
+    border-radius: 4px;
+    padding: 3px 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: var(--teal-lt);
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .header-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .header-right { margin-left: auto; }
+
+  .final-badge {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--teal);
+    border: 1.5px solid var(--teal-mid);
+    border-radius: 20px;
+    padding: 3px 12px;
+    background: var(--teal-lt);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .pulse {
+    width: 7px; height: 7px;
+    background: var(--teal);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(160deg, #fff 0%, #f0f7f5 60%, #e8f4f1 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(13,122,107,0.07) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--teal);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .hero h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 0.9rem;
+  }
+
+  .hero h2 em {
+    font-style: italic;
+    color: var(--teal);
+  }
+
+  .hero-desc {
+    max-width: 640px;
+    margin: 0 auto 2.5rem;
+    color: var(--text-dim);
+    font-size: 0.97rem;
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* ── METRICS BAR ── */
+  .metrics-bar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 950px;
+    margin: 0 auto;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+  .metric-item {
+    flex: 1;
+    min-width: 150px;
+    padding: 1.1rem 1.4rem;
+    border-right: 1px solid var(--border);
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .metric-item:last-child { border-right: none; }
+  .metric-item:hover { background: var(--teal-lt); }
+
+  .metric-value {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--teal);
+    line-height: 1;
+  }
+
+  .metric-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+
+  /* ── SECTION NAV ── */
+  .section-nav {
+    display: flex;
+    overflow-x: auto;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 57px;
+    z-index: 90;
+    scrollbar-width: none;
+  }
+  .section-nav::-webkit-scrollbar { display: none; }
+
+  .nav-btn {
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 0.71rem;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    padding: 0.95rem 1.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .nav-btn:hover { color: var(--teal); background: var(--teal-lt); }
+  .nav-btn.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+    background: var(--teal-lt);
+    font-weight: 500;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+  }
+
+  .section-panel { display: none; animation: fadeUp 0.3s ease; }
+  .section-panel.active { display: block; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.4rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .section-num {
+    font-family: var(--serif);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--teal);
+    opacity: 0.18;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: -4px;
+  }
+
+  .section-title-block h3 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.87rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── GRIDS ── */
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+  @media(max-width:768px) { .two-col,.three-col { grid-template-columns: 1fr; } }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 1.35rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .card.teal::after   { background: var(--teal); }
+  .card.amber::after  { background: var(--amber); }
+  .card.blue::after   { background: var(--blue); }
+  .card.red::after    { background: var(--red); }
+  .card.slate::after  { background: var(--slate); }
+
+  .card.teal   { background: #fafffe; }
+  .card.amber  { background: #fffdf8; }
+  .card.blue   { background: #f8fbff; }
+  .card.red    { background: #fffafa; }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+    font-weight: 500;
+  }
+  .card.amber .card-title { color: var(--amber); }
+  .card.blue  .card-title { color: var(--blue);  }
+  .card.red   .card-title { color: var(--red);   }
+  .card.slate .card-title { color: var(--slate);  }
+
+  .card p {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    line-height: 1.68;
+  }
+
+  .card ul { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+  .card ul li {
+    font-size: 0.855rem;
+    color: var(--text-dim);
+    padding-left: 1.1rem;
+    position: relative;
+    line-height: 1.5;
+  }
+  .card ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--teal);
+    font-size: 0.65rem;
+    top: 2px;
+  }
+  .card.amber ul li::before { color: var(--amber); }
+  .card.blue  ul li::before { color: var(--blue);  }
+
+  /* ── ANALOGY BOX ── */
+  .analogy-box {
+    background: var(--teal-lt);
+    border: 1.5px solid var(--teal-mid);
+    border-left: 4px solid var(--teal);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .analogy-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .analogy-box p {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    line-height: 1.75;
+  }
+
+  .analogy-box strong { color: var(--text); }
+
+  /* ── EXAM TIP ── */
+  .exam-tip {
+    background: var(--amber-lt);
+    border: 1.5px solid var(--amber-mid);
+    border-left: 4px solid var(--amber);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 1.75rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .exam-tip-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .exam-tip p { font-size: 0.83rem; color: var(--text-dim); line-height: 1.65; }
+  .exam-tip strong { color: var(--amber); }
+
+  /* ── SUBSECTION TITLE ── */
+  .sub-title {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    border-left: 4px solid var(--teal);
+    padding-left: 0.75rem;
+    margin: 2rem 0 1rem;
+  }
+
+  /* ── TERMINAL ── */
+  .terminal {
+    background: #1e2433;
+    border: 1.5px solid #d0cdc4;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .terminal-bar {
+    background: #2a3245;
+    border-bottom: 1px solid #374151;
+    padding: 0.55rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .tdot { width: 9px; height: 9px; border-radius: 50%; }
+  .tdot.r { background: #ff5f57; }
+  .tdot.y { background: #ffbd2e; }
+  .tdot.g { background: #28c840; }
+
+  .terminal-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: #94a3b8;
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .terminal pre {
+    font-family: var(--mono);
+    font-size: 0.77rem;
+    color: #a5f3fc;
+    padding: 1.25rem;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  .tg  { color: #86efac; }
+  .ta  { color: #fcd34d; }
+  .tr  { color: #fca5a5; }
+  .td  { color: #4b5563; }
+  .tw  { color: #e2e8f0; }
+
+  /* ── DOMAIN TABS ── */
+  .domain-tab-btns {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    width: fit-content;
+    margin-bottom: 1.1rem;
+    background: var(--surface2);
+  }
+
+  .domain-tab-btn {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 0.5rem 1.25rem;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid transparent;
+  }
+
+  .domain-tab-btn:hover { color: var(--text); background: var(--surface); }
+
+  .domain-tab-btn.active.health  { background: var(--teal-lt); color: var(--teal); border-bottom-color: var(--teal); }
+  .domain-tab-btn.active.finance { background: var(--blue-lt); color: var(--blue); border-bottom-color: var(--blue); }
+
+  .domain-content { display: none; }
+  .domain-content.active { display: block; }
+
+  /* ── KPI TABLE ── */
+  .kpi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    margin: 1.25rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+
+  .kpi-table th {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    text-align: left;
+    padding: 0.7rem 1rem;
+    background: var(--surface2);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .kpi-table td {
+    padding: 0.7rem 1rem;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .kpi-table tr:last-child td { border-bottom: none; }
+  .kpi-table tr:hover td { background: var(--bg); }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .badge.good { color: var(--teal); background: var(--teal-lt); border: 1px solid var(--teal-mid); }
+  .badge.warn { color: var(--amber); background: var(--amber-lt); border: 1px solid var(--amber-mid); }
+  .badge.bad  { color: var(--red);   background: var(--red-lt);   border: 1px solid var(--red-mid);  }
+
+  /* ── FLOW STEPS ── */
+  .flow-steps { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 0.5rem; }
+
+  .flow-steps::before {
+    content: '';
+    position: absolute;
+    left: 21px;
+    top: 22px;
+    bottom: 22px;
+    width: 1.5px;
+    background: linear-gradient(180deg, var(--teal-mid), transparent);
+  }
+
+  .flow-step { display: flex; gap: 1.1rem; align-items: flex-start; padding: 0.6rem 0; }
+
+  .step-num {
+    width: 42px; height: 42px;
+    background: var(--teal-lt);
+    border: 2px solid var(--teal-mid);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--teal);
+    font-weight: 500;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    background: white;
+  }
+
+  .step-content h5 {
+    font-family: var(--sans);
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+  }
+
+  .step-content p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ── FEEDBACK LOOP ── */
+  .feedback-loop { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin: 1.5rem 0; }
+
+  .loop-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    text-align: center;
+    flex: 1;
+    min-width: 130px;
+    position: relative;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .loop-item:hover { border-color: var(--teal-mid); box-shadow: 0 4px 12px rgba(13,122,107,0.1); }
+
+  .loop-item::after {
+    content: '→';
+    position: absolute;
+    right: -0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    z-index: 2;
+    background: var(--bg);
+    padding: 2px;
+  }
+  .loop-item:last-child::after { content: '↺'; color: var(--teal); font-weight: 700; }
+
+  .loop-icon { font-size: 1.4rem; margin-bottom: 0.35rem; }
+  .loop-title { font-family: var(--mono); font-size: 0.65rem; color: var(--teal); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+  .loop-desc  { font-size: 0.73rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4; }
+
+  /* ── DECISION MATRIX ── */
+  .decision-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .dm-cell { background: var(--surface); padding: 1.1rem 1.25rem; }
+  .dm-cell.hdr { background: var(--surface2); font-family: var(--mono); font-size: 0.63rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .dm-action { font-family: var(--mono); font-size: 0.82rem; font-weight: 500; margin-bottom: 0.35rem; }
+  .dm-cell.go   .dm-action { color: var(--teal);  }
+  .dm-cell.rt   .dm-action { color: var(--amber); }
+  .dm-cell.oh   .dm-action { color: #d97706;      }
+  .dm-cell.dc   .dm-action { color: var(--red);   }
+  .dm-cell p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── SUMMARY PANEL ── */
+  .summary-panel {
+    background: linear-gradient(135deg, var(--teal-lt) 0%, #ffffff 100%);
+    border: 2px solid var(--teal-mid);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2.5rem;
+  }
+
+  .summary-panel h4 {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--teal);
+    margin-bottom: 1.25rem;
+  }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
+
+  .summary-item {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+  }
+
+  .si-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    font-weight: 500;
+  }
+
+  .si-value { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1.5px solid var(--border);
+    background: var(--surface);
+    padding: 1.5rem 2rem;
+    margin-top: 4rem;
+    text-align: center;
+  }
+
+  .footer p { font-family: var(--mono); font-size: 0.63rem; color: var(--text-muted); letter-spacing: 0.04em; }
+
+  .course-complete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--teal);
+    border: 1.5px solid var(--teal-mid);
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: var(--teal-lt);
+  }
+
+  /* ── UTILS ── */
+  .mt-1 { margin-top: 1rem; }
+  .mt-2 { margin-top: 1.5rem; }
+  .mb-1 { margin-bottom: 1rem; }
+  .mb-2 { margin-bottom: 1.5rem; }
+  .note { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5; }
+  strong.hl { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <div class="header-inner">
+    <span class="header-badge">ITS OD 307</span>
+    <div>
+      <div class="header-title">Chapter 5 — Maintaining &amp; Monitoring AI in Production</div>
+      <div class="header-sub">Student Reference · Certiport IT Specialist: AI Aligned</div>
+    </div>
+    <div class="header-right">
+      <div class="final-badge"><div class="pulse"></div> Final Chapter</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-eyebrow">Chapter 5 of 5</div>
+  <h2>Maintaining &amp; <em>Monitoring AI</em> in Production</h2>
+  <p class="hero-desc">Deploying a model is just the beginning. This chapter covers how to keep AI systems healthy, fair, and continuously improving — from governance oversight to end-of-life decisions.</p>
+
+  <div class="metrics-bar">
+    <div class="metric-item">
+      <div class="metric-value">5.1</div>
+      <div class="metric-label">Engage in Oversight</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">5.2</div>
+      <div class="metric-label">Assess Business Impact</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">5.3</div>
+      <div class="metric-label">Measure Community Impact</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">5.4</div>
+      <div class="metric-label">Handle User Feedback</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">5.5</div>
+      <div class="metric-label">Improve or Decommission</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav class="section-nav">
+  <button class="nav-btn active" onclick="showSection('s51',this)">5.1 — Oversight</button>
+  <button class="nav-btn" onclick="showSection('s52',this)">5.2 — Business Impact</button>
+  <button class="nav-btn" onclick="showSection('s53',this)">5.3 — Community Impact</button>
+  <button class="nav-btn" onclick="showSection('s54',this)">5.4 — User Feedback</button>
+  <button class="nav-btn" onclick="showSection('s55',this)">5.5 — Improve / Decommission</button>
+</nav>
+
+<main class="main">
+
+  <!-- ═══════════════ 5.1 OVERSIGHT ═══════════════ -->
+  <div id="s51" class="section-panel active">
+    <div class="section-header">
+      <div class="section-num">5.1</div>
+      <div class="section-title-block">
+        <h3>Engage in Oversight</h3>
+        <p class="section-subtitle">The foundation of AI governance — logging, monitoring, alerting, and detecting failure in live systems.</p>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">🔦 Analogy First</div>
+      <p>Think of a <strong>mission control room at NASA</strong>. Rockets don't just launch and disappear — teams monitor every sensor reading in real time, compare them against expected values, and sound alarms the instant something drifts off course. AI in production works exactly the same way. <strong>Oversight is not optional — it is the job that begins the moment the model goes live.</strong></p>
+    </div>
+
+    <div class="two-col mb-2">
+      <div class="card teal">
+        <div class="card-title">🏛️ The Foundation of AI Governance</div>
+        <ul>
+          <li>Clear responsibility chains for AI decisions</li>
+          <li>Oversight mechanisms and escalation paths</li>
+          <li>Processes for addressing AI-caused harm</li>
+          <li>Regular review cycles and audit schedules</li>
+          <li>Documentation that proves compliance</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <div class="card-title">📋 Logging Application Performance</div>
+        <ul>
+          <li>Log every prediction, input, and output</li>
+          <li>Track response times and throughput</li>
+          <li>Record errors, exceptions, and retries</li>
+          <li>Store model version used for each request</li>
+          <li>Enable full audit trail for regulatory review</li>
+        </ul>
+      </div>
+    </div>
+
+    <h4 class="sub-title">What a Robust Monitoring System Watches</h4>
+    <div class="three-col mb-2">
+      <div class="card teal">
+        <div class="card-title">📊 Model Performance</div>
+        <p>Accuracy, precision, recall, F1 score — tracked daily. Alerts fire when metrics drop below defined thresholds.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-title">⚡ System Health</div>
+        <p>Latency, uptime, memory, CPU load. These infrastructure signals indicate whether the system is straining under load.</p>
+      </div>
+      <div class="card amber">
+        <div class="card-title">📉 Data Quality</div>
+        <p>Are incoming inputs similar to training data? Distribution shifts are an early warning of coming accuracy degradation.</p>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
+        <span class="terminal-label">MONITORING DASHBOARD — SAMPLE ALERT LOG</span>
+      </div>
+      <pre>
+<span class="td">2024-11-14 09:15:02</span>  <span class="tg">✓ OK</span>     Model accuracy: <span class="tw">94.2%</span>  (threshold: 90%)
+<span class="td">2024-11-14 09:15:02</span>  <span class="tg">✓ OK</span>     Avg latency: <span class="tw">38ms</span>      (threshold: 200ms)
+<span class="td">2024-11-14 14:32:11</span>  <span class="ta">⚠ WARN</span>   Accuracy: <span class="tw">88.1%</span>  — approaching threshold
+<span class="td">2024-11-14 14:32:11</span>  <span class="ta">⚠ WARN</span>   Input distribution drift detected in feature: <span class="tw">age_group</span>
+<span class="td">2024-11-14 18:55:43</span>  <span class="tr">✗ ALERT</span>  Accuracy: <span class="tw">83.7%</span>  — BELOW THRESHOLD
+<span class="td">2024-11-14 18:55:44</span>  <span class="ta">⚠ ACTION</span> Paging on-call team. Incident #4471 opened.
+<span class="td">2024-11-14 19:03:12</span>  <span class="tg">✓ OK</span>     Human review gate activated. Auto-decisions paused.</pre>
+    </div>
+
+    <h4 class="sub-title">Detecting Failure: Data Drift vs. Concept Drift</h4>
+    <div class="two-col">
+      <div class="card blue">
+        <div class="card-title">🌊 Data Drift</div>
+        <p>The statistical distribution of input features changes over time. <br><br><em>Example: A COVID variant shifts patient age profiles — but the model was trained on pre-pandemic demographics.</em></p>
+      </div>
+      <div class="card red">
+        <div class="card-title">🔄 Concept Drift</div>
+        <p>The real-world relationship between inputs and outputs changes. <br><br><em>Example: Inflation makes a fraud detection model's "normal" transaction thresholds outdated.</em></p>
+      </div>
+    </div>
+
+    <div class="exam-tip">
+      <span class="exam-tip-icon">🎯</span>
+      <p><strong>Exam Focus:</strong> Know the difference between data drift and concept drift. Logging is not optional — it is required for regulatory compliance and for detecting silent failures. The exam may ask which monitoring action is the <em>first</em> step when performance degrades unexpectedly.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5.2 BUSINESS IMPACT ═══════════════ -->
+  <div id="s52" class="section-panel">
+    <div class="section-header">
+      <div class="section-num">5.2</div>
+      <div class="section-title-block">
+        <h3>Assess Business Impact (KPIs)</h3>
+        <p class="section-subtitle">Defining success metrics, tracking impact, comparing before/after deployment, and responding to unexpected results.</p>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">🔦 Analogy First</div>
+      <p>An AI system without business KPIs is like a <strong>gym membership without a fitness goal</strong>. You could be working hard every day and still not getting anywhere useful. KPIs translate technical performance into the language organizations care about: <strong>money saved, time reduced, customers retained, errors avoided.</strong></p>
+    </div>
+
+    <div class="two-col mb-2">
+      <div class="card teal">
+        <div class="card-title">📈 Primary KPIs — The Headline Numbers</div>
+        <ul>
+          <li><strong class="hl">Revenue impact</strong> — direct financial gains or losses</li>
+          <li><strong class="hl">Cost savings</strong> — reduction in operational expense</li>
+          <li><strong class="hl">ROI</strong> — return on the AI investment over time</li>
+          <li><strong class="hl">Error reduction</strong> — fewer costly mistakes made</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <div class="card-title">🏆 Secondary KPIs — The Health Indicators</div>
+        <ul>
+          <li><strong class="hl">Processing speed</strong> — tasks completed per hour</li>
+          <li><strong class="hl">Customer satisfaction</strong> — CSAT/NPS scores</li>
+          <li><strong class="hl">Escalation rate</strong> — cases requiring human review</li>
+          <li><strong class="hl">Adoption rate</strong> — how many users rely on the system</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mb-2">
+      <div class="domain-tab-btns">
+        <button class="domain-tab-btn active health" onclick="showDomain('d52','health',this)">🏥 Healthcare</button>
+        <button class="domain-tab-btn finance" onclick="showDomain('d52','finance',this)">💰 Finance</button>
+      </div>
+
+      <div id="d52-health" class="domain-content active">
+        <div class="card teal">
+          <div class="card-title">🏥 Hospital AI Triage System — KPI Dashboard</div>
+          <table class="kpi-table">
+            <thead><tr><th>KPI</th><th>Before AI</th><th>After AI (6 mo)</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Avg. triage time</td><td>18 minutes</td><td>6 minutes</td><td><span class="badge good">↓ 67%</span></td></tr>
+              <tr><td>Missed critical cases</td><td>3.2%</td><td>0.8%</td><td><span class="badge good">↓ 75%</span></td></tr>
+              <tr><td>Patient satisfaction</td><td>3.4 / 5.0</td><td>4.1 / 5.0</td><td><span class="badge good">↑ 20%</span></td></tr>
+              <tr><td>Cost per triage</td><td>$47</td><td>$18</td><td><span class="badge good">↓ 62%</span></td></tr>
+              <tr><td>Nurse alert fatigue</td><td>—</td><td>+22%</td><td><span class="badge warn">⚠ Monitor</span></td></tr>
+            </tbody>
+          </table>
+          <p class="note">⚠️ Alert fatigue is rising even as primary metrics improve — a secondary KPI that requires investigation before declaring full success.</p>
+        </div>
+      </div>
+
+      <div id="d52-finance" class="domain-content">
+        <div class="card blue">
+          <div class="card-title">💰 Bank Loan Approval AI — KPI Dashboard</div>
+          <table class="kpi-table">
+            <thead><tr><th>KPI</th><th>Before AI</th><th>After AI (6 mo)</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Avg. decision time</td><td>7 days</td><td>2 hours</td><td><span class="badge good">↓ 97%</span></td></tr>
+              <tr><td>Default rate</td><td>3.2%</td><td>2.8%</td><td><span class="badge good">↓ 12%</span></td></tr>
+              <tr><td>Processing cost/app</td><td>$125</td><td>$35</td><td><span class="badge good">↓ 72%</span></td></tr>
+              <tr><td>Approval rate</td><td>65%</td><td>58%</td><td><span class="badge warn">⚠ Investigate</span></td></tr>
+              <tr><td>Bias complaint rate</td><td>—</td><td>+0.4%</td><td><span class="badge bad">⚠ Act Now</span></td></tr>
+            </tbody>
+          </table>
+          <p class="note">⚠️ Lower approval rate + rising bias complaints require root-cause analysis before the efficiency savings can be celebrated.</p>
+        </div>
+      </div>
+    </div>
+
+    <h4 class="sub-title">Acting on Unexpected Metrics — 5-Step Framework</h4>
+    <div class="flow-steps">
+      <div class="flow-step"><div class="step-num">01</div><div class="step-content"><h5>Immediate Assessment</h5><p>Is this urgent enough to pause the system? Determine severity before diving into investigation.</p></div></div>
+      <div class="flow-step"><div class="step-num">02</div><div class="step-content"><h5>Root Cause Analysis</h5><p>Was it a data issue, model issue, or business context change? Check logs and input distributions.</p></div></div>
+      <div class="flow-step"><div class="step-num">03</div><div class="step-content"><h5>Quantify the Business Cost</h5><p>How much does the deviation cost per day? A dollar figure prioritizes the urgency of the fix.</p></div></div>
+      <div class="flow-step"><div class="step-num">04</div><div class="step-content"><h5>Develop and Test Solution</h5><p>Retrain, adjust thresholds, or add human review. Always test before deploying the fix to production.</p></div></div>
+      <div class="flow-step"><div class="step-num">05</div><div class="step-content"><h5>Deploy and Monitor</h5><p>Roll out the fix and verify that KPIs recover to expected levels. Document all steps taken.</p></div></div>
+    </div>
+
+    <div class="exam-tip">
+      <span class="exam-tip-icon">🎯</span>
+      <p><strong>Exam Focus:</strong> KPIs must be defined <em>before</em> deployment — not after something goes wrong. Know the difference between primary KPIs (financial/efficiency) and secondary KPIs (fairness, satisfaction). The exam may ask what you should do <em>first</em> when a KPI deviates unexpectedly.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5.3 COMMUNITY IMPACT ═══════════════ -->
+  <div id="s53" class="section-panel">
+    <div class="section-header">
+      <div class="section-num">5.3</div>
+      <div class="section-title-block">
+        <h3>Measure Impacts on Individuals &amp; Communities</h3>
+        <p class="section-subtitle">Subgroup analysis, bias identification, issue mitigation, and turning equity gaps into optimization opportunities.</p>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">🔦 Analogy First</div>
+      <p>A streetlight that only illuminates one side of the road is still leaving someone in the dark — even if it technically works. <strong>AI that performs well on average but poorly for specific groups</strong> is the same problem at scale. Section 5.3 is about building the habit of looking at the subgroup scores, not just the overall score.</p>
+    </div>
+
+    <div class="two-col mb-2">
+      <div class="card teal">
+        <div class="card-title">🔍 What to Analyze — Subgroup Dimensions</div>
+        <ul>
+          <li><strong class="hl">Demographic</strong>: age, gender, race, income level</li>
+          <li><strong class="hl">Geographic</strong>: urban vs. rural, region, country</li>
+          <li><strong class="hl">Behavioral</strong>: power users vs. first-time users</li>
+          <li><strong class="hl">Temporal</strong>: how group impacts change over time</li>
+          <li><strong class="hl">Institutional</strong>: hospital type, bank branch, channel</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <div class="card-title">⚠️ Three-Category Mitigation Framework</div>
+        <ul>
+          <li><strong class="hl">Technical</strong>: retrain, fairness constraints, re-weight data</li>
+          <li><strong class="hl">Procedural</strong>: mandatory human review for affected groups</li>
+          <li><strong class="hl">Policy</strong>: governance targets, diversity audits, guidelines</li>
+        </ul>
+        <p style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-muted);">Technical fixes alone often fail — the bias may be in the data, not just the model. All three layers are often needed together.</p>
+      </div>
+    </div>
+
+    <div class="mb-2">
+      <div class="domain-tab-btns">
+        <button class="domain-tab-btn active health" onclick="showDomain('d53','health',this)">🏥 Healthcare</button>
+        <button class="domain-tab-btn finance" onclick="showDomain('d53','finance',this)">💰 Finance</button>
+      </div>
+
+      <div id="d53-health" class="domain-content active">
+        <div class="card teal">
+          <div class="card-title">🏥 Radiology AI — Pneumonia Detection by Subgroup</div>
+          <table class="kpi-table">
+            <thead><tr><th>Patient Group</th><th>Accuracy</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Adults (18–65)</td><td>95%</td><td><span class="badge good">✓ Target Met</span></td></tr>
+              <tr><td>Elderly (65+)</td><td>91%</td><td><span class="badge good">✓ Acceptable</span></td></tr>
+              <tr><td>Children (0–12)</td><td>89%</td><td><span class="badge warn">⚠ Below target</span></td></tr>
+              <tr><td>Urban hospitals</td><td>94%</td><td><span class="badge good">✓ Target Met</span></td></tr>
+              <tr><td>Rural hospitals</td><td>88%</td><td><span class="badge bad">✗ Significant gap</span></td></tr>
+            </tbody>
+          </table>
+          <p class="note">Root cause: Pediatric and rural images were underrepresented in training data. Fix: collect more data from these groups; add mandatory radiologist review for pediatric cases.</p>
+        </div>
+      </div>
+
+      <div id="d53-finance" class="domain-content">
+        <div class="card blue">
+          <div class="card-title">💰 Hiring AI — Application Acceptance Rate by Group</div>
+          <table class="kpi-table">
+            <thead><tr><th>Applicant Group</th><th>Pass Rate</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Top-10 university graduates</td><td>72%</td><td><span class="badge good">✓ Baseline</span></td></tr>
+              <tr><td>State university graduates</td><td>65%</td><td><span class="badge good">✓ Acceptable</span></td></tr>
+              <tr><td>HBCU graduates</td><td>43%</td><td><span class="badge bad">✗ Bias detected</span></td></tr>
+              <tr><td>Women in technical roles</td><td>51%</td><td><span class="badge warn">⚠ Investigate</span></td></tr>
+              <tr><td>International applicants</td><td>48%</td><td><span class="badge warn">⚠ Language bias?</span></td></tr>
+            </tbody>
+          </table>
+          <p class="note">Fix: Remove university name as a feature. Apply fairness constraints. Require human review for all final hiring decisions. Audit quarterly.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-tip">
+      <span class="exam-tip-icon">🎯</span>
+      <p><strong>Exam Focus:</strong> <em>Average accuracy hides subgroup failures</em> — write this down. The exam may give you a scenario where a model performs well overall but poorly for one group. The correct first action is subgroup analysis, not model replacement. Know all three mitigation categories: technical, procedural, and policy.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5.4 USER FEEDBACK ═══════════════ -->
+  <div id="s54" class="section-panel">
+    <div class="section-header">
+      <div class="section-num">5.4</div>
+      <div class="section-title-block">
+        <h3>Handle Feedback from Users</h3>
+        <p class="section-subtitle">Measuring satisfaction, assessing comprehension of AI limitations, and closing the loop by incorporating feedback into future versions.</p>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">🔦 Analogy First</div>
+      <p>A restaurant that never reads its reviews eventually loses customers it didn't even know were unhappy. <strong>Users interact with AI systems daily and generate invaluable signal</strong> about what's working and what's broken. Section 5.4 is about building feedback loops that actually improve the system — not just collecting data that nobody reads.</p>
+    </div>
+
+    <div class="feedback-loop">
+      <div class="loop-item"><div class="loop-icon">📋</div><div class="loop-title">Collect</div><div class="loop-desc">Surveys, ratings, support tickets, abandonment signals</div></div>
+      <div class="loop-item"><div class="loop-icon">🔍</div><div class="loop-title">Analyze</div><div class="loop-desc">Categorize themes, identify patterns, quantify frequency</div></div>
+      <div class="loop-item"><div class="loop-icon">⚖️</div><div class="loop-title">Prioritize</div><div class="loop-desc">Rank by impact × frequency — not all feedback is equal</div></div>
+      <div class="loop-item"><div class="loop-icon">🔧</div><div class="loop-title">Incorporate</div><div class="loop-desc">Retrain model, adjust UI, update documentation</div></div>
+      <div class="loop-item"><div class="loop-icon">✅</div><div class="loop-title">Validate</div><div class="loop-desc">Confirm fix worked. Tell users what changed.</div></div>
+    </div>
+
+    <div class="two-col mb-2">
+      <div class="card teal">
+        <div class="card-title">📊 Measuring User Satisfaction</div>
+        <ul>
+          <li><strong class="hl">CSAT scores</strong> — post-interaction ratings (1–5 stars)</li>
+          <li><strong class="hl">NPS</strong> — "Would you recommend this tool?"</li>
+          <li><strong class="hl">Task completion rate</strong> — did users achieve their goal?</li>
+          <li><strong class="hl">Abandonment rate</strong> — where do users give up?</li>
+          <li><strong class="hl">Repeat usage</strong> — are users returning or avoiding the AI?</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <div class="card-title">🧠 Assessing User Understanding</div>
+        <ul>
+          <li>Do users over-trust 75% confidence outputs as 100% certain?</li>
+          <li>Do they know when to escalate to a human?</li>
+          <li>Are disclaimers and limitations clearly visible?</li>
+          <li>Are they correctly interpreting confidence score ranges?</li>
+          <li>Post-training comprehension surveys confirm understanding</li>
+        </ul>
+      </div>
+    </div>
+
+    <h4 class="sub-title">Incorporating Feedback into Future Versions</h4>
+    <div class="two-col">
+      <div class="card teal">
+        <div class="card-title">🏥 Healthcare Example</div>
+        <p>Radiologists report: <em>"The model flags too many low-risk cases as urgent."</em> Analysis: a <strong class="hl">precision problem</strong> — too many false positives. Fix: adjust the classification threshold, retrain on recently labeled edge cases. Communicate the change in the next system release notes.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-title">💰 Finance Example</div>
+        <p>Customers complain: <em>"It keeps asking me to re-verify obvious, legitimate transactions."</em> Analysis: a <strong class="hl">specificity problem</strong> for trusted accounts. Fix: add a customer trust-score feature to the model. Inform customers of the update via in-app messaging.</p>
+      </div>
+    </div>
+
+    <div class="exam-tip">
+      <span class="exam-tip-icon">🎯</span>
+      <p><strong>Exam Focus:</strong> User feedback is a distinct signal from model performance metrics. Know that the full process is Collect → Analyze → Prioritize → Incorporate → <em>Communicate back</em>. The final step — telling users what changed — is frequently skipped and is a common exam distractor. Know which feedback channel is most appropriate for different types of issues.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5.5 IMPROVE / DECOMMISSION ═══════════════ -->
+  <div id="s55" class="section-panel">
+    <div class="section-header">
+      <div class="section-num">5.5</div>
+      <div class="section-title-block">
+        <h3>Consider Improvement or Decommission</h3>
+        <p class="section-subtitle">Holistic lifecycle assessment — combining all observations to decide whether to maintain, retrain, overhaul, or retire an AI system.</p>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">🔦 Analogy First</div>
+      <p>Not every car is worth repairing forever. At some point, the <strong>maintenance costs exceed the value delivered</strong> — or the model is so outdated it can't pass a safety inspection. AI systems face the same calculus. Section 5.5 is about knowing when to fix, when to rebuild, and when to retire — and having a structured framework for that decision.</p>
+    </div>
+
+    <h4 class="sub-title">Four Dimensions to Evaluate</h4>
+    <div class="two-col mb-2">
+      <div class="card amber">
+        <div class="card-title">📊 Holistic Assessment Framework</div>
+        <ul>
+          <li><strong class="hl">Business value</strong> — financial impact, ROI, competitive advantage</li>
+          <li><strong class="hl">Technical performance</strong> — accuracy, reliability, scalability</li>
+          <li><strong class="hl">Community impact</strong> — fairness, accessibility, societal benefit</li>
+          <li><strong class="hl">Strategic alignment</strong> — still solving the right problem?</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <div class="card-title">🏭 Real Example: Predictive Maintenance AI (18 months)</div>
+        <ul>
+          <li>Maintenance cost reduction: <strong class="hl">25% ($2.1M/year)</strong></li>
+          <li>Unplanned downtime reduction: <strong class="hl">40%</strong></li>
+          <li>Equipment lifespan extension: <strong class="hl">15%</strong></li>
+          <li>Worker injury reduction: <strong class="hl">30%</strong></li>
+          <li>ROI over 18 months: <strong class="hl">340%</strong></li>
+          <li>→ Decision: <strong class="hl">Continue As-Is</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <h4 class="sub-title">The Decision Matrix</h4>
+    <div class="decision-matrix">
+      <div class="dm-cell hdr">Decision</div>
+      <div class="dm-cell hdr">When to Choose It</div>
+
+      <div class="dm-cell go">
+        <div class="dm-action">✅ Continue As-Is</div>
+        <p>High performance, stable environment, no fairness issues, aligned with business goals</p>
+      </div>
+      <div class="dm-cell">
+        <p>KPIs are met, data distributions stable, business objectives unchanged</p>
+      </div>
+
+      <div class="dm-cell rt">
+        <div class="dm-action">🔄 Retrain / Update</div>
+        <p>Good foundation but performance is degrading or data has drifted</p>
+      </div>
+      <div class="dm-cell">
+        <p>Drift detected, new data available, minor bias issues, regulations updated</p>
+      </div>
+
+      <div class="dm-cell oh">
+        <div class="dm-action">🔧 Major Overhaul</div>
+        <p>Significant issues exist, new technology available, business needs have shifted substantially</p>
+      </div>
+      <div class="dm-cell">
+        <p>Architecture is limiting, serious fairness concerns, new privacy laws require redesign</p>
+      </div>
+
+      <div class="dm-cell dc">
+        <div class="dm-action">🚫 Decommission</div>
+        <p>Poor performance, unsustainable costs, obsolete purpose, irreparable issues</p>
+      </div>
+      <div class="dm-cell">
+        <p>ROI is negative, business strategy pivoted, superior replacement system is ready</p>
+      </div>
+    </div>
+
+    <h4 class="sub-title">Three Worked Decision Scenarios</h4>
+    <div class="three-col">
+      <div class="card teal">
+        <div class="card-title">Scenario A — Content Moderation AI</div>
+        <p>Saves 60% of moderation costs. But accuracy is declining due to new abuse patterns, and bias issues have been identified.</p>
+        <p style="margin-top:0.75rem;"><strong style="color:var(--teal);">→ Retrain</strong> with updated data and bias mitigation measures.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-title">Scenario B — Inventory Management AI</div>
+        <p>Modest stock optimization. Reliable but not exceptional. Company is shifting to just-in-time manufacturing — a completely different operational model.</p>
+        <p style="margin-top:0.75rem;"><strong style="color:var(--blue);">→ Decommission</strong> and replace with a supply-chain-focused AI.</p>
+      </div>
+      <div class="card red">
+        <div class="card-title">Scenario C — Customer Segmentation AI</div>
+        <p>Excellent performance and strong revenue impact. But new privacy regulations require a fundamentally different data architecture.</p>
+        <p style="margin-top:0.75rem;"><strong style="color:var(--red);">→ Major Overhaul</strong> to implement privacy-preserving techniques.</p>
+      </div>
+    </div>
+
+    <div class="exam-tip">
+      <span class="exam-tip-icon">🎯</span>
+      <p><strong>Exam Focus:</strong> Know all four lifecycle decisions and when each applies. Lifecycle reviews should happen on a <em>regular, scheduled basis</em> — not only when a crisis occurs. The exam loves scenario-based questions: <em>"A model's accuracy is declining but its business foundation is sound — what should you do?"</em> → Retrain, not Decommission.</p>
+    </div>
+
+    <!-- Chapter Summary -->
+    <div class="summary-panel">
+      <h4>🏁 Chapter 5 — Complete Summary</h4>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="si-label">5.1 Oversight</div>
+          <div class="si-value">Log everything. Monitor model, system, and data metrics. Alert on drift. Never let AI run unobserved in production.</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">5.2 Business Impact</div>
+          <div class="si-value">Define KPIs before deployment. Track primary and secondary metrics. Investigate unexpected deviations systematically.</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">5.3 Community Impact</div>
+          <div class="si-value">Average accuracy hides subgroup failures. Analyze across demographic, geographic, and behavioral groups. Mitigate via technical, procedural, and policy measures.</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">5.4 User Feedback</div>
+          <div class="si-value">Collect satisfaction and comprehension signals. Prioritize by impact. Close the loop — update the model and tell users what changed.</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">5.5 Lifecycle Decision</div>
+          <div class="si-value">Evaluate across business, technical, fairness, and strategy dimensions. Choose one: Continue, Retrain, Overhaul, or Decommission.</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">The Big Picture</div>
+          <div class="si-value">AI deployment is not the finish line — it is the starting line for ongoing stewardship, fairness, and continuous improvement.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <p>ITS OD 307 — Artificial Intelligence Deep Dive · Certiport IT Specialist: AI Aligned</p>
+  <div class="course-complete"><span>●</span> Course Complete — Chapter 5 of 5</div>
+</footer>
+
+<script>
+  function showSection(id, btn) {
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({ top: document.querySelector('.section-nav').offsetTop - 10, behavior: 'smooth' });
+  }
+
+  function showDomain(prefix, domain, btn) {
+    const container = btn.closest('.domain-tab-btns').parentElement;
+    container.querySelectorAll('.domain-content').forEach(c => c.classList.remove('active'));
+    btn.closest('.domain-tab-btns').querySelectorAll('.domain-tab-btn').forEach(b => {
+      b.classList.remove('active', 'health', 'finance');
+    });
+    document.getElementById(`${prefix}-${domain}`).classList.add('active');
+    btn.classList.add('active', domain);
+  }
+</script>
+</body>
+</html>

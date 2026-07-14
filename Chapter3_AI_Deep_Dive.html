@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 3 — AI Algorithms, Models & Evaluation | AI Deep Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f0f0ed;
+    --surface: #ffffff;
+    --border: #d8d5cc;
+    --text: #1a1a1a;
+    --muted: #6b6860;
+    --s1: #0f6b72;   /* teal — 3.1 */
+    --s1-lt: #e5f5f6;
+    --s2: #3b3580;   /* indigo — 3.2 */
+    --s2-lt: #eeeefc;
+    --s3: #7a4f1a;   /* amber — 3.3 */
+    --s3-lt: #fdf5e8;
+    --s4: #8b1a4a;   /* crimson — 3.5 */
+    --s4-lt: #fce8f0;
+    --s5: #1a4a2e;   /* forest — 3.6 */
+    --s5-lt: #e8f5ee;
+    --exam: #1c3a5e;
+    --exam-lt: #e8f0fb;
+    --correct: #1a6b3c;
+    --wrong: #8b1a1a;
+    --border-clr: #d8d5cc;
+    --white: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── BANNER ── */
+  .banner {
+    background: #0d0d0d;
+    color: #fff;
+    text-align: center;
+    padding: 22px 24px;
+  }
+  .banner .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .banner h1 { font-size: clamp(20px,4vw,30px); font-weight: 700; letter-spacing: -0.5px; }
+  .banner .sub { font-size: 13px; color: #bbb; margin-top: 4px; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { background: #1a1a1a; height: 5px; }
+  .progress-bar {
+    height: 5px;
+    background: linear-gradient(90deg,var(--s1),var(--s2),var(--s3),var(--s4),var(--s5));
+    width: 0; transition: width .3s;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: #fff;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 4px;
+    padding: 0 20px;
+    overflow-x: auto; white-space: nowrap;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase;
+    padding-right: 10px; border-right: 1px solid var(--border);
+    margin-right: 6px; flex-shrink: 0;
+  }
+  .nav-btn {
+    flex-shrink: 0; text-decoration: none; padding: 14px 13px;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    border-bottom: 3px solid transparent; transition: all .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.s1 { border-color: var(--s1); color: var(--s1); }
+  .nav-btn.s2 { border-color: var(--s2); color: var(--s2); }
+  .nav-btn.s3 { border-color: var(--s3); color: var(--s3); }
+  .nav-btn.s4 { border-color: var(--s4); color: var(--s4); }
+  .nav-btn.s5 { border-color: var(--s5); color: var(--s5); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: flex-start; gap: 20px;
+    margin-bottom: 32px; padding: 24px 28px;
+    border-radius: 4px; border-left: 6px solid;
+  }
+  .section-header.s1 { background: var(--s1-lt); border-color: var(--s1); }
+  .section-header.s2 { background: var(--s2-lt); border-color: var(--s2); }
+  .section-header.s3 { background: var(--s3-lt); border-color: var(--s3); }
+  .section-header.s4 { background: var(--s4-lt); border-color: var(--s4); }
+  .section-header.s5 { background: var(--s5-lt); border-color: var(--s5); }
+  .section-num {
+    font-family: 'DM Mono', monospace; font-size: 32px;
+    font-weight: 500; line-height: 1; opacity: .55; flex-shrink: 0;
+  }
+  .section-header h2 { font-size: clamp(18px,3vw,24px); font-weight: 700; margin-bottom: 6px; letter-spacing: -.3px; }
+  .section-header .tagline { font-size: 13px; opacity: .75; font-style: italic; }
+
+  /* ── BODY ── */
+  .section-body { margin-bottom: 60px; }
+  h3.block-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; margin: 32px 0 14px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--border); color: var(--muted);
+  }
+  p { margin-bottom: 12px; color: #333; }
+
+  /* ── CARDS ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 14px; margin-bottom: 24px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 18px 16px;
+  }
+  .card .card-icon { font-size: 22px; margin-bottom: 8px; }
+  .card .card-title { font-weight: 700; font-size: 14px; margin-bottom: 5px; }
+  .card .card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .card.accent-s1 { border-top: 3px solid var(--s1); }
+  .card.accent-s2 { border-top: 3px solid var(--s2); }
+  .card.accent-s3 { border-top: 3px solid var(--s3); }
+  .card.accent-s4 { border-top: 3px solid var(--s4); }
+  .card.accent-s5 { border-top: 3px solid var(--s5); }
+
+  /* ── TABS ── */
+  .tab-nav {
+    display: flex; gap: 4px;
+    border-bottom: 2px solid var(--border); margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 9px 16px; font-size: 13px; font-weight: 600;
+    background: none; border: none; border-bottom: 3px solid transparent;
+    cursor: pointer; color: var(--muted); margin-bottom: -2px;
+    font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .tab-btn.active.s1 { border-bottom-color: var(--s1); color: var(--s1); }
+  .tab-btn.active.s2 { border-bottom-color: var(--s2); color: var(--s2); }
+  .tab-btn.active.s3 { border-bottom-color: var(--s3); color: var(--s3); }
+  .tab-btn.active.s4 { border-bottom-color: var(--s4); color: var(--s4); }
+  .tab-btn.active.s5 { border-bottom-color: var(--s5); color: var(--s5); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── SCENARIO ── */
+  .scenario {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 20px; font-size: 14px;
+  }
+  .scenario .label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase; font-weight: 500;
+    margin-bottom: 10px; opacity: .65;
+  }
+  .scenario h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .scenario ul { padding-left: 18px; }
+  .scenario li { margin-bottom: 5px; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13.5px; background: var(--surface); }
+  th { background: #111; color: #fff; padding: 10px 14px; text-align: left; font-size: 11.5px; letter-spacing: .4px; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #fafaf8; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 4px solid; padding: 14px 18px; margin: 20px 0;
+    border-radius: 0 4px 4px 0; font-size: 14px;
+  }
+  .callout.s1 { background: var(--s1-lt); border-color: var(--s1); }
+  .callout.s2 { background: var(--s2-lt); border-color: var(--s2); }
+  .callout.s3 { background: var(--s3-lt); border-color: var(--s3); }
+  .callout.s4 { background: var(--s4-lt); border-color: var(--s4); }
+  .callout.s5 { background: var(--s5-lt); border-color: var(--s5); }
+  .callout strong { display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── STAGES ── */
+  .stages { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+  .stage-item {
+    display: flex; gap: 0; background: var(--surface);
+    border: 1px solid var(--border); border-top: none;
+  }
+  .stage-item:first-child { border-top: 1px solid var(--border); border-radius: 4px 4px 0 0; }
+  .stage-item:last-child { border-radius: 0 0 4px 4px; }
+  .stage-num {
+    min-width: 44px; display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+    color: #fff; flex-shrink: 0;
+  }
+  .stage-num.s2 { background: var(--s2); }
+  .stage-content { padding: 14px 16px; flex: 1; }
+  .stage-content .stage-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+  .stage-content .stage-desc { font-size: 13px; color: var(--muted); }
+
+  /* ── METRIC VISUAL ── */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 16px; text-align: center;
+  }
+  .metric-card .metric-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .metric-card .metric-question { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .metric-card .metric-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .metric-card.s4 { border-top: 3px solid var(--s4); }
+
+  /* ── CONFUSION TABLE ── */
+  .confusion-wrap { overflow-x: auto; margin-bottom: 20px; }
+  .confusion-table { min-width: 500px; border-collapse: collapse; font-size: 13px; }
+  .confusion-table th, .confusion-table td { border: 1px solid var(--border); padding: 10px 14px; text-align: center; }
+  .confusion-table th { background: #111; color: #fff; }
+  .c-tp { background: #e8f5ee; font-weight: 700; color: var(--correct); }
+  .c-tn { background: #e8f5ee; font-weight: 700; color: var(--correct); }
+  .c-fp { background: #fce8e8; font-weight: 700; color: var(--wrong); }
+  .c-fn { background: #fce8e8; font-weight: 700; color: var(--wrong); }
+
+  /* ── EXAM ── */
+  .exam-section {
+    background: var(--exam-lt); border: 2px solid #aabdd4;
+    border-radius: 6px; padding: 24px; margin-top: 40px;
+  }
+  .exam-header { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .exam-badge {
+    background: var(--exam); color: #fff;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 5px 10px; border-radius: 3px;
+  }
+  .exam-header h3 { font-size: 16px; font-weight: 700; color: var(--exam); }
+
+  .question { margin-bottom: 22px; }
+  .question .q-text { font-weight: 600; margin-bottom: 10px; font-size: 14px; line-height: 1.55; }
+  .options { display: flex; flex-direction: column; gap: 6px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 12px; background: #fff; border: 1.5px solid #ccc;
+    border-radius: 4px; cursor: pointer; font-size: 13.5px;
+    transition: all .15s; text-align: left;
+    font-family: 'DM Sans', sans-serif; line-height: 1.45; width: 100%;
+  }
+  .option:hover { border-color: var(--exam); background: #f5f8fd; }
+  .option .opt-letter { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; width: 18px; flex-shrink: 0; margin-top: 1px; }
+  .option.correct { background: #e8f5ee; border-color: var(--correct); color: var(--correct); }
+  .option.wrong { background: #fdecea; border-color: var(--wrong); color: var(--wrong); }
+  .option.reveal-correct { background: #e8f5ee; border-color: var(--correct); }
+
+  .reveal-btn {
+    margin-top: 8px; padding: 7px 16px;
+    background: var(--exam); color: #fff; border: none;
+    border-radius: 3px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: .5px;
+  }
+  .reveal-btn:hover { background: #112840; }
+  .reveal-btn:disabled { background: #888; cursor: default; }
+
+  .answer-block {
+    display: none; margin-top: 10px; padding: 12px 14px;
+    background: #fff; border: 1px solid #aabdd4; border-radius: 4px; font-size: 13px;
+  }
+  .answer-block.show { display: block; }
+  .answer-block .correct-label { font-weight: 700; color: var(--correct); margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .answer-block .explanation { color: #444; line-height: 1.5; margin-bottom: 6px; }
+  .answer-block .teacher-note {
+    padding: 8px 10px; background: #fffbe8; border-left: 3px solid #d4a017;
+    font-size: 12px; color: #5a4500;
+  }
+  .answer-block .teacher-note strong { color: #8a6800; }
+
+  .question-divider { border: none; border-top: 1px dashed #ccc; margin: 18px 0; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-sep { height: 2px; background: linear-gradient(90deg,var(--border),transparent); margin: 60px 0; }
+
+  footer { background: #0d0d0d; color: #888; text-align: center; padding: 20px; font-size: 12px; font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="tag">ITS OD 307 · Artificial Intelligence Deep Dive</div>
+  <h1>Chapter 3 — AI Algorithms, Models &amp; Evaluation</h1>
+  <div class="sub">Sections 3.1 – 3.6 · Interactive Classroom Reference · Santosh Srinivasaiah</div>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<nav>
+  <span class="nav-label">Jump to</span>
+  <a class="nav-btn s1" href="#s31">3.1 Algorithms &amp; Models</a>
+  <a class="nav-btn s2" href="#s32">3.2 Model Development</a>
+  <a class="nav-btn s3" href="#s33">3.3 Model Selection</a>
+  <a class="nav-btn s4" href="#s35">3.5 Evaluation &amp; Metrics</a>
+  <a class="nav-btn s5" href="#s36">3.6 Bias Mitigation</a>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════════════════
+     SECTION 3.1
+═══════════════════════════════ -->
+<div id="s31" class="section-body">
+  <div class="section-header s1">
+    <div class="section-num">3.1</div>
+    <div>
+      <h2>AI Algorithms &amp; Models</h2>
+      <p class="tagline">"Choosing the wrong algorithm is like using a hammer to perform surgery — you have the wrong tool for the job."</p>
+    </div>
+  </div>
+
+  <p>An <strong>algorithm</strong> is the learning strategy — the method for finding patterns. A <strong>model</strong> is the result of running that algorithm on data — a trained artifact that can make predictions on new inputs. Before choosing any algorithm, you must first correctly identify what <em>type</em> of problem you are solving.</p>
+
+  <h3 class="block-title">The Four Problem Types</h3>
+  <div class="grid">
+    <div class="card accent-s1">
+      <div class="card-icon">🏷️</div>
+      <div class="card-title">Classification</div>
+      <div class="card-desc">Output is a <strong>category</strong>. "Is this email spam or not?" "Is this tumor malignant or benign?" You have labeled training data.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-icon">📈</div>
+      <div class="card-title">Regression</div>
+      <div class="card-desc">Output is a <strong>number</strong>. "What will this patient's blood pressure be?" "How much will this house sell for?" Labeled data with numeric targets.</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">Unsupervised Learning</div>
+      <div class="card-desc"><strong>No labels</strong>. The algorithm finds hidden patterns, groups, or anomalies on its own. "What natural customer segments exist in this data?"</div>
+    </div>
+    <div class="card accent-s1">
+      <div class="card-icon">🎮</div>
+      <div class="card-title">Reinforcement Learning</div>
+      <div class="card-desc">The AI learns by <strong>trial and error</strong> with rewards and penalties. "What sequence of actions maximizes the long-term outcome?"</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Decision Framework: Which Type Do You Have?</h3>
+  <table>
+    <thead><tr><th>Question</th><th>Answer</th><th>Problem Type</th></tr></thead>
+    <tbody>
+      <tr><td>Do you have labeled data?</td><td>Yes — labels are categories</td><td><strong>Classification</strong></td></tr>
+      <tr><td>Do you have labeled data?</td><td>Yes — labels are numbers</td><td><strong>Regression</strong></td></tr>
+      <tr><td>Do you have labeled data?</td><td>No labels at all</td><td><strong>Unsupervised</strong></td></tr>
+      <tr><td>Can the AI try actions and get feedback?</td><td>Yes — reward/penalty system</td><td><strong>Reinforcement</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block-title">Algorithm Families</h3>
+  <div class="tab-nav">
+    <button class="tab-btn active s1" onclick="switchTab(this,'alg-sup')">Supervised</button>
+    <button class="tab-btn s1" onclick="switchTab(this,'alg-unsup')">Unsupervised</button>
+    <button class="tab-btn s1" onclick="switchTab(this,'alg-rl')">Reinforcement</button>
+  </div>
+  <div id="alg-sup" class="tab-pane active">
+    <div class="scenario">
+      <div class="label">Supervised Learning Algorithms</div>
+      <h4>Learning From Labeled Examples</h4>
+      <ul>
+        <li><strong>Decision Trees:</strong> A flowchart of yes/no questions. Easy to explain: "Is credit score &gt;650? → Is income &gt;$50K? → Approve loan." Interpretable but can overfit.</li>
+        <li><strong>Neural Networks:</strong> Layers of interconnected nodes inspired by the brain. Excellent for images and text; hard to interpret internally.</li>
+        <li><strong>Random Forest:</strong> An ensemble of many decision trees that vote together — more robust than any single tree.</li>
+        <li><strong>Logistic Regression:</strong> Despite the name, this is a classification algorithm. Outputs a probability (0–1) of belonging to a class. Highly interpretable.</li>
+      </ul>
+    </div>
+  </div>
+  <div id="alg-unsup" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Unsupervised Learning Algorithms</div>
+      <h4>Finding Hidden Structure Without Labels</h4>
+      <ul>
+        <li><strong>K-Means Clustering:</strong> Groups data into K clusters by finding the centers that minimize distance to all points in each group. Used for customer segmentation.</li>
+        <li><strong>Anomaly Detection:</strong> Learns what "normal" looks like and flags records that deviate significantly. Used for fraud detection and equipment fault prediction.</li>
+        <li><strong>Dimensionality Reduction (PCA):</strong> Compresses many features into fewer, more informative ones — useful for visualization and preprocessing.</li>
+      </ul>
+    </div>
+  </div>
+  <div id="alg-rl" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Reinforcement Learning</div>
+      <h4>Learning Through Reward and Penalty</h4>
+      <ul>
+        <li><strong>Core idea:</strong> An agent takes actions in an environment, receives rewards or penalties, and gradually learns the strategy that maximizes cumulative reward over time.</li>
+        <li><strong>Healthcare example:</strong> Optimizing treatment sequences for cancer — the AI tries different combinations and learns which sequences lead to the best patient outcomes.</li>
+        <li><strong>Finance example:</strong> Dynamic pricing — the AI adjusts product prices based on customer responses and learns which pricing strategies maximize revenue.</li>
+        <li><strong>Famous example:</strong> AlphaGo — learned to play Go at superhuman level purely through self-play and reward signals.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="block-title">Real-World Applications</h3>
+  <table>
+    <thead><tr><th>Problem Type</th><th>Healthcare Example</th><th>Finance Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Classification</strong></td><td>Classifying skin lesions as malignant or benign from photographs</td><td>Flagging a credit card transaction as fraudulent or legitimate</td></tr>
+      <tr><td><strong>Regression</strong></td><td>Predicting how much a patient's blood pressure will drop with a given medication</td><td>Estimating the probability-weighted loss on a loan portfolio</td></tr>
+      <tr><td><strong>Unsupervised</strong></td><td>Discovering new disease subtypes from patient genetic and clinical data</td><td>Identifying unusual market regimes (bull, bear, volatile) from historical price patterns</td></tr>
+      <tr><td><strong>Reinforcement</strong></td><td>Learning optimal sequences of chemotherapy doses based on patient response</td><td>Training an algorithmic trading agent to maximize risk-adjusted returns</td></tr>
+    </tbody>
+  </table>
+
+  <!-- EXAM 3.1 -->
+  <div class="exam-section">
+    <div class="exam-header"><span class="exam-badge">Exam Practice</span><h3>Section 3.1 — 5 Practice Questions</h3></div>
+
+    <div class="question">
+      <div class="q-text">1. A hospital wants to predict the exact number of emergency room visits expected each day for the next month. Which type of AI problem is this?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Classification — the output is a category</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Regression — the output is a continuous number</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Unsupervised learning — there are no labels</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Reinforcement learning — the system must take actions to maximize outcomes</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Predicting a specific number (daily ER visit count) is a regression problem. The output is continuous and numeric. Classification would be used if the question were "will ER volume be high or low?" — but the question asks for the exact number.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> C is a common distractor — there IS labeled historical data (past ER counts). Reinforce: the type of output (number vs. category) is the deciding factor.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">2. A bank analyzes customer transaction history and discovers three natural groups of spending behavior without having defined those groups in advance. Which algorithm family was most likely used?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Supervised learning — classification</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Supervised learning — regression</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Unsupervised learning — clustering</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Reinforcement learning — reward optimization</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">The key phrase is "without having defined those groups in advance." This is unsupervised learning — the algorithm discovered natural structure in unlabeled data. K-means clustering is the classic algorithm for this type of problem.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A is wrong because there are no predefined categories with labels. Students often confuse "grouping" with "classification" — the key difference is whether labels exist before training.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">3. Which TWO of the following are characteristics of supervised learning? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>Training data includes both inputs and correct output labels</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>The algorithm discovers patterns without being told what to look for</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>The output can be either a category (classification) or a number (regression)</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The model learns by receiving rewards and penalties for its actions</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Supervised learning requires labeled training data (A) and produces either categorical or numeric outputs (C). B describes unsupervised learning; D describes reinforcement learning.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a particularly important distractor — students often conflate "learning from feedback" with supervised learning. The distinction: supervised uses static labeled datasets; reinforcement uses dynamic environmental feedback.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">4. An AI is being trained to find the optimal sequence of insulin dosing decisions for a diabetic patient over 24 hours, learning from the patient's physiological responses. What type of learning is this?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Supervised learning — regression</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Unsupervised learning — clustering</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Supervised learning — classification</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">D</span>Reinforcement learning — the AI takes sequential actions and receives feedback on outcomes</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: D</div>
+        <div class="explanation">Sequential decision-making with environmental feedback is the hallmark of reinforcement learning. The AI must take actions (dosing decisions), observe outcomes (blood glucose response), and learn which action sequences lead to the best long-term result.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A is a common guess because dosing involves numbers. But the key is that this involves sequential decisions over time with feedback — not predicting a single value from a static dataset.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">5. A team has customer purchase data but no predefined labels or categories. They want to understand natural patterns. Which approach should they take FIRST?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Train a classification model using the purchase data</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Assign categories manually, then train a supervised model</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Apply clustering to discover natural groupings in the unlabeled data</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Use reinforcement learning to let the AI explore the purchase space</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Without predefined categories and with a goal to "understand natural patterns," unsupervised clustering is the right first step. It lets the structure emerge from the data rather than imposing assumptions about what the groups should be.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> B is tempting — many students suggest manually labeling data. But manual labeling introduces human bias about what segments should exist. Clustering first, then labeling the discovered groups, is the sound methodological approach.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ═══════════════════════════════
+     SECTION 3.2
+═══════════════════════════════ -->
+<div id="s32" class="section-body">
+  <div class="section-header s2">
+    <div class="section-num">3.2</div>
+    <div>
+      <h2>Machine Learning Model Development</h2>
+      <p class="tagline">"Your first model is never your final model — iteration is the process, not a sign of failure."</p>
+    </div>
+  </div>
+
+  <p>Model development is an inherently <strong>cyclical process</strong>. You train, tune, measure, and iterate — repeatedly — until performance meets the real-world requirement. Understanding the four stages and what can go wrong at each one is essential for building reliable AI systems.</p>
+
+  <h3 class="block-title">The Four-Stage Development Journey</h3>
+  <div class="stages">
+    <div class="stage-item">
+      <div class="stage-num s2">01</div>
+      <div class="stage-content">
+        <div class="stage-title">Training with Best-Guess Parameters</div>
+        <div class="stage-desc">Establish a baseline using domain knowledge and published defaults. This is not about getting perfect results — it's about getting something to measure and improve from.</div>
+      </div>
+    </div>
+    <div class="stage-item">
+      <div class="stage-num s2">02</div>
+      <div class="stage-content">
+        <div class="stage-title">Fine-Tuning (Hyperparameter Optimization)</div>
+        <div class="stage-desc">Systematically adjust settings like learning rate, model depth, and regularization strength. Use grid search, random search, or Bayesian optimization to explore the parameter space.</div>
+      </div>
+    </div>
+    <div class="stage-item">
+      <div class="stage-num s2">03</div>
+      <div class="stage-content">
+        <div class="stage-title">Measuring Performance with Metrics</div>
+        <div class="stage-desc">Evaluate the model on held-out data using appropriate metrics. Accuracy alone is rarely sufficient — you need precision, recall, and business-aligned KPIs.</div>
+      </div>
+    </div>
+    <div class="stage-item">
+      <div class="stage-num s2">04</div>
+      <div class="stage-content">
+        <div class="stage-title">Iteration — The Refinement Cycle</div>
+        <div class="stage-desc">Based on evaluation insights, decide whether to adjust parameters, change the model architecture, collect better data, or engineer new features. Then repeat stages 1–3.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Overfitting vs. Underfitting</h3>
+  <div class="callout s2">
+    <strong>The Core Tension in Model Training</strong>
+    Every model must find a balance: complex enough to learn real patterns, but not so complex that it memorizes the training data's noise. Overfitting is too much complexity; underfitting is too little.
+  </div>
+  <table>
+    <thead><tr><th>Problem</th><th>What It Looks Like</th><th>What Causes It</th><th>How to Fix It</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Overfitting</strong><br>"Memorization"</td>
+        <td>Near-perfect training accuracy; poor test accuracy. Large gap between the two.</td>
+        <td>Model too complex; too many features; not enough training data</td>
+        <td>Regularization, simpler model, cross-validation, more training data</td>
+      </tr>
+      <tr>
+        <td><strong>Underfitting</strong><br>"Oversimplification"</td>
+        <td>Poor accuracy on both training and test data. Model cannot learn the pattern.</td>
+        <td>Model too simple; too few features; insufficient training epochs</td>
+        <td>More complex model, feature engineering, longer training, domain knowledge</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="block-title">Domain-Specific Tuning Priorities</h3>
+  <div class="tab-nav">
+    <button class="tab-btn active s2" onclick="switchTab(this,'tune-health')">🏥 Healthcare</button>
+    <button class="tab-btn s2" onclick="switchTab(this,'tune-finance')">🏦 Finance</button>
+  </div>
+  <div id="tune-health" class="tab-pane active">
+    <div class="scenario">
+      <div class="label">Healthcare Tuning Priorities</div>
+      <h4>Pneumonia Detection from Chest X-Rays</h4>
+      <ul>
+        <li><strong>Stage 1:</strong> Start with a proven convolutional neural network architecture. Learning rate 0.001, batch size 32, 50 epochs.</li>
+        <li><strong>Stage 2:</strong> Tune toward high recall — missing a pneumonia case is far more dangerous than a false alarm.</li>
+        <li><strong>Key consideration:</strong> Interpretability may be prioritized over marginal accuracy gains. Radiologists need to understand why the model flagged an image.</li>
+        <li><strong>Stage 4 iteration:</strong> If model struggles with rare pneumonia types, collect more labeled examples of those edge cases.</li>
+      </ul>
+    </div>
+  </div>
+  <div id="tune-finance" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Finance Tuning Priorities</div>
+      <h4>Credit Card Fraud Detection</h4>
+      <ul>
+        <li><strong>Stage 1:</strong> Random forest baseline. Initial result: 92% accuracy — but only caught 45% of actual fraud cases.</li>
+        <li><strong>The trap:</strong> 92% accuracy sounds great. But with only 0.1% of transactions being fraudulent, a model that predicts "not fraud" for everything achieves 99.9% accuracy. Accuracy is misleading on imbalanced data.</li>
+        <li><strong>Stage 2:</strong> Use cost-sensitive learning, adjust decision thresholds, implement resampling to balance the dataset.</li>
+        <li><strong>Result after tuning:</strong> Fraud detection rate improved to 78% while keeping false positives under 2%.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EXAM 3.2 -->
+  <div class="exam-section">
+    <div class="exam-header"><span class="exam-badge">Exam Practice</span><h3>Section 3.2 — 5 Practice Questions</h3></div>
+
+    <div class="question">
+      <div class="q-text">6. A fraud detection model achieves 99% accuracy on training data but only 60% on new transaction data. What is the MOST likely problem?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Underfitting — the model is too simple to learn the patterns</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Overfitting — the model memorized training patterns rather than learning general ones</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Data leakage — the training data contained future information</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The model was not trained for enough epochs</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">A large gap between training accuracy (99%) and test accuracy (60%) is the classic signature of overfitting. The model learned the specific patterns of the training transactions — including noise — rather than the general characteristics of fraud.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> C is a plausible distractor. Data leakage would also produce artificially high training accuracy. The key distinction: data leakage tends to produce very high test accuracy too (since the answer was leaked). Overfitting produces high training, poor test.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">7. In which stage of model development would you adjust the learning rate and regularization strength? </div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Stage 1 — Initial Training</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Stage 2 — Fine-Tuning / Hyperparameter Optimization</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Stage 3 — Performance Measurement</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Stage 4 — Iteration</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Learning rate and regularization are hyperparameters — high-level settings that control how the algorithm learns. Systematically adjusting these to improve performance is the definition of Stage 2: fine-tuning.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a common answer because "iteration" sounds like it includes everything. Clarify the distinction: Stage 4 is about deciding what strategy to change next based on evaluation; Stage 2 is the actual adjustment of parameters.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">8. A medical AI predicts patient recovery time using only the patient's age, ignoring diagnosis, surgery type, and complications. It performs poorly on both training and test data. What is the problem?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Overfitting — the model is too complex</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Underfitting — the model is too simple to capture the relevant patterns</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Data leakage — recovery information was included in training</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Overfitting — the model memorized specific patients' ages</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Poor performance on BOTH training and test data (not just test data) is the signature of underfitting. The model is too simple — using only age ignores the most predictive variables. Fix: add more features and use a more complex model.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A and D both say overfitting — use this to reinforce the key diagnostic: overfitting = good training, poor test. Underfitting = poor both. The gap tells you which problem you have.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">9. Which TWO statements are true about the model development iteration cycle? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>The first trained model is never expected to be the final deployed model</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Iteration means the original approach was fundamentally wrong and must be abandoned</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Each iteration provides new information about the problem, the data, and the solution</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>You should stop iterating only when accuracy reaches 100%</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Iteration is designed into the ML process — the first model establishes a baseline (A), and each iteration teaches the team something new about what works (C). B misframes iteration as failure. D sets an impossible and harmful target (100% accuracy almost always means overfitting).</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is worth discussing explicitly. 100% training accuracy is a red flag, not a goal. Use this to preview the overfitting concept.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">10. A team wants to find the best hyperparameter combination for their model. They have limited time but a large parameter space. Which tuning approach is MOST efficient?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Grid search — test every possible combination systematically</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Random search — sample the parameter space randomly, often finds good solutions faster than exhaustive search</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>No tuning — use the default parameters provided by the algorithm library</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Manual tuning — adjust one parameter at a time based on intuition</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Random search is counterintuitively efficient because in large parameter spaces, not all parameters matter equally. Random sampling explores the space more broadly and often finds good solutions in a fraction of the time grid search requires.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A (grid search) is thorough but exponentially expensive as parameters increase. Use the city-map analogy: grid search checks every block; random search drops pins across the whole map and often hits the good areas faster.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ═══════════════════════════════
+     SECTION 3.3
+═══════════════════════════════ -->
+<div id="s33" class="section-body">
+  <div class="section-header s3">
+    <div class="section-num">3.3</div>
+    <div>
+      <h2>Model Selection &amp; Data Storytelling</h2>
+      <p class="tagline">"The best model is not always the most sophisticated one — it's the one that solves the problem reliably and can be trusted."</p>
+    </div>
+  </div>
+
+  <p>Two skills define the difference between a data scientist and a data scientist people trust: knowing how to <strong>choose the right model</strong> for the problem at hand, and knowing how to <strong>communicate what the model found</strong> in a way that drives real decisions.</p>
+
+  <h3 class="block-title">The Over-Engineering Trap</h3>
+  <div class="callout s3">
+    <strong>More Complexity ≠ Better Results</strong>
+    A hospital spent six months building a cutting-edge deep learning readmission predictor. The system was technically impressive. Doctors couldn't understand why it made its predictions. They didn't trust it. It was abandoned. A simpler logistic regression model — less accurate by 3% but fully explainable — was deployed instead and actually reduced readmissions.
+  </div>
+
+  <h3 class="block-title">Model Selection Criteria</h3>
+  <div class="grid">
+    <div class="card accent-s3">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">Accuracy</div>
+      <div class="card-desc">How well does it solve the problem? But always check — is accuracy the right metric, or do you need precision/recall?</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Speed</div>
+      <div class="card-desc">How fast is training and prediction? A model that takes 2 seconds per query cannot support real-time fraud detection.</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">Explainability</div>
+      <div class="card-desc">Can you explain decisions to regulators, doctors, or customers? In healthcare and finance, this is often non-negotiable.</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">🔧</div>
+      <div class="card-title">Maintainability</div>
+      <div class="card-desc">How easy is it to update, retrain, and debug? Simpler models are easier to maintain as data evolves.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Explainability vs. Accuracy Trade-off</h3>
+  <table>
+    <thead><tr><th>Model Type</th><th>Accuracy</th><th>Explainability</th><th>Best For</th></tr></thead>
+    <tbody>
+      <tr><td>Logistic Regression</td><td>Moderate</td><td>Very High — exact coefficients</td><td>Regulated decisions (credit, clinical)</td></tr>
+      <tr><td>Decision Tree</td><td>Moderate</td><td>High — readable flowchart</td><td>Rule-based business decisions</td></tr>
+      <tr><td>Random Forest</td><td>High</td><td>Medium — feature importance available</td><td>General prediction tasks</td></tr>
+      <tr><td>Gradient Boosting</td><td>Very High</td><td>Medium — SHAP values needed</td><td>Competitive ML, tabular data</td></tr>
+      <tr><td>Deep Neural Network</td><td>Highest (for images/text)</td><td>Low — "black box"</td><td>Images, audio, natural language</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block-title">The Art of Data Storytelling</h3>
+  <p>Raw numbers and accuracy scores don't move people to action. Stories do. A compelling data story follows a three-act structure:</p>
+  <div class="grid">
+    <div class="card accent-s3">
+      <div class="card-icon">🎬</div>
+      <div class="card-title">Act 1: The Setup</div>
+      <div class="card-desc">Establish context and stakes. "Our hospital has seen readmissions rise 12% over 18 months. Each readmission costs $8,000 and harms patient outcomes."</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">⚔️</div>
+      <div class="card-title">Act 2: The Conflict</div>
+      <div class="card-desc">Identify the specific problem your analysis addresses. "We needed to know: which patients are most at risk, and why? Surveys were insufficient."</div>
+    </div>
+    <div class="card accent-s3">
+      <div class="card-icon">💡</div>
+      <div class="card-title">Act 3: The Resolution</div>
+      <div class="card-desc">Present findings with clear, honest visualizations and a specific call to action. Not just what you found — what should happen next.</div>
+    </div>
+  </div>
+
+  <!-- EXAM 3.3 -->
+  <div class="exam-section">
+    <div class="exam-header"><span class="exam-badge">Exam Practice</span><h3>Section 3.3 — 5 Practice Questions</h3></div>
+
+    <div class="question">
+      <div class="q-text">11. A community bank must approve or deny loan applications and provide written explanations for denials to comply with fair lending laws. Which model is MOST appropriate?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>A deep neural network — it achieves the highest accuracy</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Logistic regression or interpretable gradient boosting — explainability is required by regulation</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>An unsupervised clustering model — to discover new customer segments</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>A reinforcement learning model — to optimize lending decisions over time</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">When regulations require explanations for decisions — as fair lending laws do — model explainability is not optional. A deep neural network may be more accurate, but if it cannot explain why a loan was denied, it cannot be used in this context.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A tests whether students default to "highest accuracy = best model." Reinforce: the best model is the one that meets all requirements — accuracy, speed, explainability, and compliance.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">12. What does "explainability" mean in the context of AI model selection?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The ability to explain the training data to the algorithm</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>The ability to understand and communicate why the model made a specific prediction</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The percentage of variance in outcomes that the model explains (R-squared)</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The documentation written by engineers to describe how the model was trained</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Explainability means being able to articulate why a specific prediction was made — "This loan was denied because the debt-to-income ratio was 58% against a threshold of 40%." C describes R-squared, a statistical metric. D describes documentation, not explainability.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> C is a sophisticated distractor — R-squared does use the word "explains" in statistics. This tests whether students understand model explainability as a distinct concept from statistical fit.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">13. A data team presents their fraud detection results using a dashboard with 47 different metrics and charts. Leadership does not act on the findings. What is the MOST likely problem?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The model accuracy was insufficient</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>The data story was too complex — overwhelming presentations prevent action</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The model used the wrong algorithm</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Leadership does not trust AI systems in general</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">47 metrics is a presentation problem, not a model problem. Effective data storytelling means selecting the 2–3 most important findings and presenting them clearly. Complexity creates confusion; clarity creates action.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D tests whether students attribute communication failures to trust issues. Reinforce: technical correctness is necessary but not sufficient. Communication is a deliverable, not an afterthought.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">14. Which TWO of the following are valid reasons to choose a simpler model over a more complex one? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>The simpler model must provide explanations that regulators or customers require</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>The complex model was built by a competitor, not the internal team</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>The performance difference is small, but the simpler model is much easier to maintain and debug</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The complex model uses more features and more data</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Regulatory explainability requirements (A) and total cost of ownership including maintenance (C) are legitimate engineering reasons to choose simplicity. B is irrelevant to technical merit. D describes a characteristic of the complex model, not a reason to avoid it.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is worth discussing — more features and more data don't automatically make a model better if they introduce noise or overfitting. Connect back to Section 3.2.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">15. What is the FIRST step in building a compelling data story from AI findings?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Create visualizations of all available metrics</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Report the model's accuracy score to leadership</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Establish context and stakes — why this matters and what is at risk</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>List all limitations and caveats of the model</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Every compelling story starts with context — why the audience should care. Establishing stakes makes the findings meaningful. Jumping straight to metrics (A, B) or limitations (D) without context loses the audience before you've made your case.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is worth acknowledging as a responsible practice — but leading with limitations is not how you earn attention. Limitations belong after the main narrative.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ═══════════════════════════════
+     SECTION 3.5
+═══════════════════════════════ -->
+<div id="s35" class="section-body">
+  <div class="section-header s4">
+    <div class="section-num">3.5</div>
+    <div>
+      <h2>Model Evaluation &amp; Performance Assessment</h2>
+      <p class="tagline">"A model that's 99% accurate at predicting a disease affecting 1% of people might still be completely useless."</p>
+    </div>
+  </div>
+
+  <p>Evaluation is not a one-time activity — it is an ongoing obligation. Choosing the right metrics for the right problem is one of the most consequential decisions in AI development. The wrong metric can make a broken model look successful.</p>
+
+  <h3 class="block-title">The Core Classification Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card s4">
+      <div class="metric-name">Accuracy</div>
+      <div class="metric-question">"What % of all predictions were correct?"</div>
+      <div class="metric-desc">Simple overall grade. Misleading when classes are imbalanced (rare events).</div>
+    </div>
+    <div class="metric-card s4">
+      <div class="metric-name">Precision</div>
+      <div class="metric-question">"When I say YES, how often am I right?"</div>
+      <div class="metric-desc">High precision = few false alarms. Critical when false positives are costly.</div>
+    </div>
+    <div class="metric-card s4">
+      <div class="metric-name">Recall (Sensitivity)</div>
+      <div class="metric-question">"Of all the real positives, how many did I catch?"</div>
+      <div class="metric-desc">High recall = few missed cases. Critical when false negatives are dangerous.</div>
+    </div>
+    <div class="metric-card s4">
+      <div class="metric-name">F1 Score</div>
+      <div class="metric-question">"What's the balanced score between precision and recall?"</div>
+      <div class="metric-desc">Single number combining both. Best for imbalanced datasets.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">The Confusion Matrix</h3>
+  <div class="confusion-wrap">
+    <table class="confusion-table">
+      <thead>
+        <tr><th></th><th>Predicted: Positive</th><th>Predicted: Negative</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Actual: Positive</strong></td>
+          <td class="c-tp">✔ True Positive (TP)<br><small>Correct — caught the case</small></td>
+          <td class="c-fn">✗ False Negative (FN)<br><small>Missed — dangerous in healthcare</small></td>
+        </tr>
+        <tr>
+          <td><strong>Actual: Negative</strong></td>
+          <td class="c-fp">✗ False Positive (FP)<br><small>False alarm — costly in fraud</small></td>
+          <td class="c-tn">✔ True Negative (TN)<br><small>Correct — correctly ruled out</small></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="block-title">Precision vs. Recall Trade-off</h3>
+  <div class="callout s4">
+    <strong>The Core Clinical Trade-off</strong>
+    You cannot simultaneously maximize both precision and recall. Raising one typically lowers the other. The right balance depends entirely on which type of error is more costly in your specific domain.
+  </div>
+  <table>
+    <thead><tr><th>Domain</th><th>High Recall Priority</th><th>High Precision Priority</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cancer Screening</strong></td><td>Miss as few cancers as possible — a missed diagnosis can be fatal. Accept more false alarms.</td><td>Only when screening a very large healthy population and follow-up procedures are extremely invasive or expensive.</td></tr>
+      <tr><td><strong>Fraud Detection</strong></td><td>Catch as much fraud as possible — when financial losses from missed fraud exceed the cost of false alarms.</td><td>When false alarms block legitimate customers — damaging experience and trust.</td></tr>
+      <tr><td><strong>Spam Filtering</strong></td><td>Catch more spam — accept some valid email going to the spam folder.</td><td>Ensure no important email is lost to the spam folder — accept some spam in the inbox.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block-title">Cross-Validation &amp; Robustness Testing</h3>
+  <div class="grid">
+    <div class="card accent-s4">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Cross-Validation</div>
+      <div class="card-desc">Split data into multiple folds. Train on most folds, test on the remainder. Repeat. Average results for a more reliable performance estimate than a single train/test split.</div>
+    </div>
+    <div class="card accent-s4">
+      <div class="card-icon">🔨</div>
+      <div class="card-title">Robustness Testing</div>
+      <div class="card-desc">Test the model on edge cases, unusual inputs, and adversarial examples. A model that works on clean data may fail on real-world data with noise, missing values, or distribution shifts.</div>
+    </div>
+    <div class="card accent-s4">
+      <div class="card-icon">⚖️</div>
+      <div class="card-title">Baseline Comparison</div>
+      <div class="card-desc">Always compare against the simplest possible approach. If your AI barely beats a rule-based system or random guessing, the added complexity may not be worth it.</div>
+    </div>
+    <div class="card accent-s4">
+      <div class="card-icon">📉</div>
+      <div class="card-title">Survivorship Bias</div>
+      <div class="card-desc">If your evaluation data only includes successful cases (patients who completed treatment, applications that were approved), your performance estimate is artificially optimistic.</div>
+    </div>
+  </div>
+
+  <!-- EXAM 3.5 -->
+  <div class="exam-section">
+    <div class="exam-header"><span class="exam-badge">Exam Practice</span><h3>Section 3.5 — 5 Practice Questions</h3></div>
+
+    <div class="question">
+      <div class="q-text">16. A disease affects 1% of the population. An AI model predicts "No Disease" for every patient and achieves 99% accuracy. What is the PRIMARY problem with using accuracy to evaluate this model?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The model's accuracy should be at least 99.5% to be clinically useful</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Accuracy is misleading on imbalanced datasets — the model catches 0% of actual cases despite appearing 99% accurate</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The model was trained with the wrong algorithm</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The dataset was too small to evaluate accuracy reliably</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">This is the classic imbalanced dataset problem. A model that never predicts the positive class achieves high accuracy simply because positive cases are rare. The recall for the disease class is 0% — the model is clinically worthless despite high accuracy. Precision and recall are the right metrics here.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> This example is deliberately extreme to make the point. Use it to establish the rule: whenever you hear "99% accuracy," ask "what is the class distribution?" before trusting the number.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">17. A cancer screening AI flags 100 patients. 30 actually have cancer. 70 were false alarms. What is the model's precision?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>70%</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>30%</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>30 out of the total population with cancer</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Cannot be calculated without knowing total population size</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Precision = True Positives ÷ (True Positives + False Positives) = 30 ÷ (30 + 70) = 30 ÷ 100 = 30%. Of all patients flagged as having cancer, only 30% actually do. This is a low-precision model — it generates many false alarms.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a common student response — they confuse precision (based only on what the model flagged) with recall (which requires knowing the total positive population). Precision needs only the predicted positives.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">18. A fraud detection model misses 40% of actual fraud cases but rarely blocks legitimate transactions. Which metric is MOST concerning here?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Precision — the model creates too many false alarms</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Recall — the model is missing 40% of actual fraud cases</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Accuracy — the overall percentage of correct predictions is too low</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Specificity — too many legitimate transactions are blocked</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Missing 40% of fraud cases is a recall problem — the model fails to identify a large proportion of actual positives (real fraud). The problem statement also says it "rarely blocks legitimate transactions," meaning precision is high. The issue is specifically with recall.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D tests whether students can identify what "rarely blocks legitimate transactions" means — that's high specificity (TN rate). The contrast between high precision/specificity and low recall is the key learning here.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">19. Which TWO describe appropriate uses of cross-validation? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>Getting a more reliable estimate of model performance by testing across multiple data splits</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Making the model more accurate by giving it access to all available data during training</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Checking whether model performance is consistent or highly variable across different subsets of data</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Replacing the need for a separate test set for final model evaluation</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Cross-validation gives more reliable performance estimates (A) and reveals performance variance across data splits (C). B misunderstands CV — it still withholds folds for testing. D is a common misconception: cross-validation is used for model selection and validation, not final evaluation. A separate held-out test set is always needed for the final assessment.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is a critical misconception to correct. Students often think CV eliminates the need for a test set. Clarify: CV uses the training data. The test set is untouched until the final evaluation.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">20. A model for predicting hospital readmission achieves excellent results during development but performs poorly after deployment. The team later discovers that post-discharge outcome codes were included as training features. What caused this?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Overfitting — the model memorized training examples</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>Underfitting — the model was too simple</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Data leakage — information only available after the outcome was used as a training feature</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Survivorship bias — only successful cases were included in evaluation</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Post-discharge outcome codes are only recorded after the patient is readmitted — they do not exist at the time of prediction. Including them as features gave the model the answer during training. This is data leakage: the model appeared to work because it had access to future information.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A is a common answer because the performance gap resembles overfitting. The distinction: leakage causes the model to succeed on test data too (since the test set also had leaked features). It only fails in production where the future data doesn't exist.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- ═══════════════════════════════
+     SECTION 3.6
+═══════════════════════════════ -->
+<div id="s36" class="section-body">
+  <div class="section-header s5">
+    <div class="section-num">3.6</div>
+    <div>
+      <h2>Identifying &amp; Mitigating Bias in AI Algorithms</h2>
+      <p class="tagline">"A model that performs equally well for everyone is not just more ethical — it is technically better."</p>
+    </div>
+  </div>
+
+  <p>AI bias occurs when a model produces systematically unfair outcomes for certain groups. Bias is rarely intentional — it is almost always inherited from data, design choices, or historical patterns baked into the inputs. Identifying and mitigating it is both an ethical and a technical responsibility.</p>
+
+  <h3 class="block-title">The 6 Critical Bias Detection Areas</h3>
+  <div class="grid">
+    <div class="card accent-s5">
+      <div class="card-icon">🔎</div>
+      <div class="card-title">1. Bias Source Detection</div>
+      <div class="card-desc">Examine historical data, feature selection, and the algorithm itself for embedded bias before training begins.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">📊</div>
+      <div class="card-title">2. Input Validation</div>
+      <div class="card-desc">Verify that incoming real-world data resembles the distribution the model was trained on. Distribution shift causes silent performance degradation.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">3. Correlation Analysis</div>
+      <div class="card-desc">Detect spurious or proxy variables — features that appear neutral but encode protected characteristics like race, gender, or religion.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">⚖️</div>
+      <div class="card-title">4. Data Balance Check</div>
+      <div class="card-desc">Examine class and group representation. Imbalanced training data produces models that perform well for majority groups and poorly for minorities.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">5. Feedback Loop Analysis</div>
+      <div class="card-desc">Identify self-reinforcing cycles where the AI's decisions create new data that amplifies the original bias.</div>
+    </div>
+    <div class="card accent-s5">
+      <div class="card-icon">💬</div>
+      <div class="card-title">6. Explainability Check</div>
+      <div class="card-desc">Ensure decisions can be understood and explained. Opaque models hide bias that might otherwise be obvious.</div>
+    </div>
+  </div>
+
+  <h3 class="block-title">Three-Stage Mitigation Strategy</h3>
+  <table>
+    <thead><tr><th>Stage</th><th>When</th><th>Techniques</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Pre-processing</strong></td>
+        <td>Before training — fix the data</td>
+        <td>Balanced sampling, remove/adjust proxy variables, augment underrepresented groups</td>
+        <td>Oversample minority loan applicants so credit model has equal representation during training</td>
+      </tr>
+      <tr>
+        <td><strong>In-processing</strong></td>
+        <td>During training — constrain the model</td>
+        <td>Fairness constraints in the loss function, adversarial debiasing</td>
+        <td>Add a penalty to the fraud model whenever it performs significantly worse on one demographic group</td>
+      </tr>
+      <tr>
+        <td><strong>Post-processing</strong></td>
+        <td>After training — adjust outputs</td>
+        <td>Threshold calibration per group, outcome recalibration</td>
+        <td>Set different decision thresholds for different demographic groups to equalize approval rates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="block-title">Fairness Metrics</h3>
+  <div class="tab-nav">
+    <button class="tab-btn active s5" onclick="switchTab(this,'fair-health')">🏥 Healthcare</button>
+    <button class="tab-btn s5" onclick="switchTab(this,'fair-finance')">🏦 Finance</button>
+  </div>
+  <div id="fair-health" class="tab-pane active">
+    <div class="scenario">
+      <div class="label">Healthcare Bias Examples</div>
+      <h4>Electronic Health Record AI</h4>
+      <ul>
+        <li><strong>Bias challenge:</strong> EHR data reflects historical disparities in care delivery. Certain groups may have received different levels of care — and the AI learns those patterns as if they are medically justified.</li>
+        <li><strong>Pre-processing fix:</strong> Remove or adjust features that reflect access to care (e.g., number of prior visits) rather than underlying health status.</li>
+        <li><strong>Monitoring:</strong> Track model performance (accuracy, recall) separately for each demographic group after deployment. A model that is 90% accurate overall but 72% accurate for one group has a fairness problem.</li>
+      </ul>
+    </div>
+  </div>
+  <div id="fair-finance" class="tab-pane">
+    <div class="scenario">
+      <div class="label">Finance Bias Examples</div>
+      <h4>Credit Scoring &amp; Loan Approval</h4>
+      <ul>
+        <li><strong>Bias challenge:</strong> Zip code correlates with race due to historical redlining. A credit model using zip code as a feature may discriminate by proxy even without including race explicitly.</li>
+        <li><strong>Disparate impact testing:</strong> Regularly calculate approval and denial rates by demographic group. A statistically significant difference triggers a bias review.</li>
+        <li><strong>In-processing fix:</strong> Apply fairness constraints during training that penalize models producing significantly different positive prediction rates across protected groups.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EXAM 3.6 -->
+  <div class="exam-section">
+    <div class="exam-header"><span class="exam-badge">Exam Practice</span><h3>Section 3.6 — 5 Practice Questions</h3></div>
+
+    <div class="question">
+      <div class="q-text">21. A hospital AI for patient triage performs significantly worse for patients over 75 than for younger patients, even though older patients make up 30% of the hospital's population. Which bias detection area should be investigated FIRST?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Feedback loop analysis</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Data balance check — the training data may underrepresent elderly patients</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>Explainability check — the model needs better documentation</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Correlation analysis — zip code may be acting as a proxy</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">When a model performs worse for a specific demographic group, the first hypothesis to test is underrepresentation in training data. If the model saw very few elderly patient cases during training, it didn't have enough examples to learn their patterns reliably.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> D is plausible in a lending context but not the most logical first step here. Use this to reinforce: bias investigation should follow the evidence — performance gap by age group → data balance first.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">22. A bank builds a credit model and removes the "race" and "gender" columns from the training data. A later audit finds the model still denies loans to certain minority groups at disproportionate rates. What is the MOST likely explanation?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>The model was not trained for enough epochs</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>The training data was too small</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Proxy variables such as zip code or neighborhood are encoding race indirectly</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The model's precision is too high, creating too many false positives</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Removing protected attribute columns does not prevent discrimination if proxy variables remain. Zip code, neighborhood, and other geographically-linked features can correlate strongly with race due to historical housing discrimination. The model discriminates by proxy.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> This is Section 2.3's proxy variable concept applied to Section 3.6. Use it as a deliberate cross-chapter connection point. Fairness is a data problem AND a model problem — both must be addressed.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">23. Which bias mitigation approach involves adjusting the model's decision thresholds differently for different demographic groups after training is complete?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>Pre-processing — balanced sampling</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>In-processing — fairness constraints</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>Post-processing — threshold calibration</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>Data augmentation — generating synthetic examples</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: C</div>
+        <div class="explanation">Post-processing interventions are applied after the model is trained. Adjusting thresholds — for example, requiring a higher confidence score for one group before making a positive prediction — is a post-processing approach to equalize outcomes across groups.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> The three stages map clearly to "before, during, after" training. A clean way to remember: Pre = fix the data, In = constrain the learning, Post = adjust the outputs.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">24. Which TWO are examples of feedback loop bias in deployed AI systems? (Choose TWO)</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">A</span>A predictive policing AI sends more officers to certain areas, producing more arrests there, which the model then treats as evidence those areas have more crime</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">B</span>A model trained on biased historical loan data produces biased approvals</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">C</span>A credit model denies loans to people in certain areas, preventing them from building credit history, which then causes their future credit scores to worsen</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>A cancer detection model performs worse on underrepresented racial groups due to limited training data</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answers: A and C</div>
+        <div class="explanation">Feedback loop bias occurs when the AI's own decisions generate new data that reinforces the original bias (A and C). B describes historical bias — the bias exists in the data before the AI was deployed. D describes underrepresentation bias — a data collection issue, not a deployment feedback effect.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> B and D are traps because they involve bias, just not feedback loop bias. Use this to reinforce the taxonomy: historical bias, representation bias, feedback loop bias — different causes, different solutions.</div>
+      </div>
+    </div>
+    <hr class="question-divider">
+
+    <div class="question">
+      <div class="q-text">25. What does "equal opportunity" mean as a fairness metric for AI systems?</div>
+      <div class="options">
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">A</span>All demographic groups receive the same number of positive predictions</button>
+        <button class="option" onclick="pick(this,'correct')"><span class="opt-letter">B</span>Qualified individuals from all groups have equal true positive rates — the model catches actual positives at the same rate across groups</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">C</span>The model was trained using data from equal numbers of each demographic group</button>
+        <button class="option" onclick="pick(this,'wrong')"><span class="opt-letter">D</span>The model's overall accuracy is the same for all demographic groups</button>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer(this)">Show Answer &amp; Explanation</button>
+      <div class="answer-block">
+        <div class="correct-label">✔ Correct Answer: B</div>
+        <div class="explanation">Equal opportunity means that among individuals who deserve a positive outcome (truly qualified loan applicants, truly sick patients), the model identifies them at the same rate across all groups. A describes demographic parity — a different metric. C and D describe training data balance and accuracy parity respectively.</div>
+        <div class="teacher-note"><strong>Teacher note:</strong> A (demographic parity) is often confused with equal opportunity. The key distinction: demographic parity looks at all predictions; equal opportunity looks only at the truly positive cases. These lead to different interventions.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<footer>ITS OD 307 · Artificial Intelligence Deep Dive · Chapter 3 · Santosh Srinivasaiah · 2025</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const pct = (window.scrollY / (doc.scrollHeight - doc.clientHeight)) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+  });
+
+  function switchTab(btn, tabId) {
+    const nav = btn.closest('.tab-nav');
+    nav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    let el = nav.nextElementSibling;
+    while (el && el.classList.contains('tab-pane')) {
+      el.classList.remove('active');
+      el = el.nextElementSibling;
+    }
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  function pick(btn, result) {
+    const opts = btn.closest('.options');
+    if (opts.querySelector('.correct, .wrong')) return;
+    btn.classList.add(result);
+    if (result === 'wrong') {
+      opts.querySelectorAll('.option').forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes("'correct'"))
+          o.classList.add('reveal-correct');
+      });
+    }
+  }
+
+  function revealAnswer(btn) {
+    btn.nextElementSibling.classList.add('show');
+    btn.disabled = true;
+    btn.textContent = 'Answer Shown';
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const t = document.querySelector(a.getAttribute('href'));
+      if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>

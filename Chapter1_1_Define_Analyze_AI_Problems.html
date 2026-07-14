@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 1.1 — Define & Analyze AI Problems | ITS OD 307</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0f2044;
+    --cyan: #00c8e0;
+    --cyan-soft: #00c8e020;
+    --gold: #f5c842;
+    --green: #22c97a;
+    --red: #ff5c5c;
+    --text: #e8edf5;
+    --muted: #7a8faf;
+    --card: #111e35;
+    --card2: #0d1a2e;
+    --border: #1e3358;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Mesh background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 10%, #00c8e012 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 10% 80%, #0055aa15 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    padding: 52px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .course-tag {
+    display: inline-block;
+    background: var(--cyan-soft);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid #00c8e035;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  .header h1 span { color: var(--cyan); }
+  .header-meta {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .meta-pill .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    flex-shrink: 0;
+  }
+
+  /* ─── SECTION TITLES ─── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 24px;
+  }
+
+  /* ─── WHY LEARN — HOOK CARDS ─── */
+  .hook-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .hook-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .hook-card:hover { transform: translateY(-3px); border-color: var(--cyan); }
+  .hook-card .icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .hook-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .hook-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .hook-card .accent-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+  }
+
+  /* ─── ANALOGY BLOCK ─── */
+  .analogy-block {
+    background: linear-gradient(135deg, #0f2044, #0a1628);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+  }
+  .analogy-block .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .analogy-block p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #c8d6ef;
+  }
+  .analogy-block strong { color: #fff; }
+
+  /* ─── SIX QUESTIONS ─── */
+  .questions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .q-num {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--cyan-soft);
+    border: 1px solid #00c8e040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+  .q-card h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .q-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* ─── REAL WORLD SCENARIOS ─── */
+  .scenario-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active, .tab-btn:hover {
+    background: var(--cyan-soft);
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .scenario-content { display: none; }
+  .scenario-content.active { display: block; }
+
+  .scenario-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .scenario-header {
+    background: var(--card2);
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .scenario-header .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-health { background: #22c97a20; color: var(--green); border: 1px solid #22c97a30; }
+  .badge-finance { background: #f5c84220; color: var(--gold); border: 1px solid #f5c84230; }
+  .badge-retail { background: #00c8e020; color: var(--cyan); border: 1px solid #00c8e030; }
+  .scenario-header h3 { font-size: 14px; font-weight: 700; color: #fff; }
+
+  .scenario-body { padding: 20px 22px; }
+  .scenario-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px 16px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .scenario-row .key {
+    color: var(--muted);
+    font-weight: 600;
+    padding-top: 1px;
+  }
+  .scenario-row .val { color: #d4e0f5; line-height: 1.5; }
+
+  .verdict {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .verdict.yes { background: #22c97a15; border: 1px solid #22c97a30; color: var(--green); }
+  .verdict.no { background: #ff5c5c15; border: 1px solid #ff5c5c30; color: var(--red); }
+
+  /* ─── CHECKLIST ─── */
+  .checklist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  @media(max-width: 600px) { .checklist-grid { grid-template-columns: 1fr; } }
+
+  .checklist-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+  }
+  .checklist-block h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checklist-block h4 .indicator {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #c0d0e8;
+    line-height: 1.5;
+  }
+  .check-icon { flex-shrink: 0; margin-top: 2px; }
+
+  /* ─── INTERACTIVE Q&A ─── */
+  .qa-intro {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .qa-intro .icon { font-size: 24px; }
+  .qa-intro p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .qa-intro strong { color: var(--text); }
+
+  .question-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .question-block:hover { border-color: #2a4a6a; }
+
+  .question-head {
+    padding: 20px 22px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    cursor: pointer;
+    user-select: none;
+  }
+  .q-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cyan);
+    background: var(--cyan-soft);
+    border: 1px solid #00c8e030;
+    padding: 3px 9px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .question-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0eaff;
+    line-height: 1.5;
+    flex: 1;
+  }
+  .expand-icon {
+    font-size: 18px;
+    color: var(--muted);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .question-block.open .expand-icon { transform: rotate(180deg); }
+
+  .options-list {
+    padding: 0 22px 4px 22px;
+    list-style: none;
+  }
+  .option-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #a8b8d8;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .option-item:hover { background: #ffffff08; border-color: var(--border); }
+  .option-item .opt-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    background: #1a2a45;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .option-item.selected-correct {
+    background: #22c97a18;
+    border-color: #22c97a50;
+    color: var(--green);
+  }
+  .option-item.selected-correct .opt-letter {
+    background: #22c97a30;
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .option-item.selected-wrong {
+    background: #ff5c5c15;
+    border-color: #ff5c5c40;
+    color: var(--red);
+  }
+  .option-item.selected-wrong .opt-letter {
+    background: #ff5c5c25;
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .option-item.reveal-correct {
+    background: #22c97a10;
+    border-color: #22c97a30;
+    color: var(--green);
+  }
+  .option-item.reveal-correct .opt-letter {
+    background: #22c97a20;
+    border-color: #22c97a60;
+    color: var(--green);
+  }
+
+  .answer-section {
+    display: none;
+    margin: 0 22px 20px;
+    padding: 16px 18px;
+    background: #0d1e38;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .answer-section.show { display: block; }
+  .answer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .answer-text {
+    font-size: 13px;
+    color: #c0d5f0;
+    line-height: 1.7;
+  }
+  .answer-text strong { color: #fff; }
+  .teacher-note {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: #f5c84210;
+    border: 1px solid #f5c84225;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #f5c842cc;
+    line-height: 1.6;
+  }
+  .teacher-note::before {
+    content: '📋 Teacher Note: ';
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    margin-top: 60px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer p { font-size: 12px; color: var(--muted); }
+  .footer strong { color: var(--cyan); }
+
+  /* Progress tracker */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    z-index: 999;
+    transition: width 0.1s;
+  }
+
+  /* Section marker */
+  .section-block {
+    margin-bottom: 56px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .stat-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    flex: 1;
+    min-width: 140px;
+  }
+  .stat-pill .num {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-pill .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="course-tag">ITS OD 307 · Artificial Intelligence · 2025</div>
+    <h1>Chapter 1.1 — <span>Define & Analyze</span> AI Problems</h1>
+    <p style="color:var(--muted);font-size:14px;margin-top:10px;line-height:1.6;">
+      Interactive class guide for Section 1.1: AI Problem Identification & Project Scoping.<br>
+      Reference: <em>Artificial Intelligence Deep Dive — Santosh Srinivasaiah</em>
+    </p>
+    <div class="header-meta">
+      <div class="meta-pill"><div class="dot"></div>Non-technical audience friendly</div>
+      <div class="meta-pill"><div class="dot" style="background:var(--gold)"></div>Exam-style Q&A included</div>
+      <div class="meta-pill"><div class="dot" style="background:var(--green)"></div>Healthcare & Finance examples</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <div class="num">6</div>
+      <div class="lbl">Core Questions AI Must Answer</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num">4</div>
+      <div class="lbl">Real-World Scenarios</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num">10</div>
+      <div class="lbl">Exam-Style Questions</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num">5</div>
+      <div class="lbl">Chapter 1 Objectives</div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 1: WHY LEARN THIS ─── -->
+  <div class="section-block">
+    <div class="section-label">Part 1 — Why This Matters</div>
+    <div class="section-title">Why You Need to Learn Chapter 1</div>
+
+    <div class="analogy-block">
+      <div class="label">🩺 Opening Analogy — Use This to Open Class</div>
+      <p>
+        <strong>Imagine you're a doctor.</strong> Before prescribing medicine, you diagnose the problem first.
+        Is it a bacterial infection? A broken bone? You wouldn't give antibiotics for a fracture.
+        <br><br>
+        AI works exactly the same way. <strong>Before building any AI solution, you must first understand what type of problem you're solving.</strong>
+        Get this wrong — and it's like using a hammer to perform surgery. The tool isn't wrong; you are just using it on the wrong problem.
+        <br><br>
+        In business terms: wasted resources, failed projects, and missed opportunities. <em>Your book says it best — "the most expensive AI is the one you build for the wrong problem."</em>
+      </p>
+    </div>
+
+    <div class="hook-grid">
+      <div class="hook-card">
+        <div class="accent-line"></div>
+        <div class="icon">🌍</div>
+        <h3>AI Is Everywhere Now</h3>
+        <p>Whether you go into business, healthcare, or any field, you'll encounter AI systems daily. Understanding this protects you from being just a passive user — you become an informed participant.</p>
+      </div>
+      <div class="hook-card">
+        <div class="accent-line"></div>
+        <div class="icon">💸</div>
+        <h3>Wrong Problem = Costly Failure</h3>
+        <p>The book opens with this truth: a bank once invested millions in AI to predict stock prices, only to realize they needed a simple calculator for account balances. Chapter 1 prevents this.</p>
+      </div>
+      <div class="hook-card">
+        <div class="accent-line"></div>
+        <div class="icon">🔍</div>
+        <h3>The Most Valuable Skill Is Knowing "When NOT to Use AI"</h3>
+        <p>Anyone can ask an AI to solve something. The skill — and the certification — requires you to know <em>when to use AI, when not to, and how to define the problem correctly.</em></p>
+      </div>
+      <div class="hook-card">
+        <div class="accent-line"></div>
+        <div class="icon">🏥</div>
+        <h3>Real Stakes in Healthcare & Finance</h3>
+        <p>In healthcare, a misclassified patient can be life-threatening. In finance, a wrong fraud detection decision blocks real customers. The way you define the problem determines everything downstream.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ─── SECTION 2: CORE CONCEPTS ─── -->
+  <div class="section-block">
+    <div class="section-label">Part 2 — Core Concepts</div>
+    <div class="section-title">The 6 Critical Questions AI Problem Identification Must Answer</div>
+
+    <div class="questions-grid">
+      <div class="q-card">
+        <div class="q-num">01</div>
+        <div>
+          <h4>Problem Definition</h4>
+          <p>What exactly are you trying to solve? Not "better customer service" — but "reduce wait times from 10 min to 2 min."</p>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">02</div>
+        <div>
+          <h4>Need Assessment</h4>
+          <p>Why does this problem matter? What happens if you don't solve it? What improves if you do?</p>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">03</div>
+        <div>
+          <h4>Input / Output Analysis</h4>
+          <p>What data do you have available (inputs)? What decisions or predictions do you want (outputs)?</p>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">04</div>
+        <div>
+          <h4>AI Suitability</h4>
+          <p>Not every problem needs AI. Some need simple rules, others need human judgment. Does this problem involve patterns, scale, or learning?</p>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">05</div>
+        <div>
+          <h4>Cost-Benefit Analysis</h4>
+          <p>What are the potential upsides (efficiency, savings)? What are the downsides (cost, errors, privacy risks)?</p>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">06</div>
+        <div>
+          <h4>Success Metrics & Risk</h4>
+          <p>What does success look like in measurable terms? What's the acceptable error rate? What's the fallback plan?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ─── SECTION 3: REAL WORLD SCENARIOS ─── -->
+  <div class="section-block">
+    <div class="section-label">Part 3 — Real-World Examples</div>
+    <div class="section-title">AI Problem Identification in Action</div>
+
+    <div class="scenario-tabs">
+      <button class="tab-btn active" onclick="showTab('health')">🏥 Healthcare</button>
+      <button class="tab-btn" onclick="showTab('finance')">💳 Finance</button>
+      <button class="tab-btn" onclick="showTab('noai')">🚫 When NOT to Use AI</button>
+    </div>
+
+    <!-- HEALTHCARE -->
+    <div class="scenario-content active" id="tab-health">
+      <div class="scenario-card">
+        <div class="scenario-header">
+          <span class="badge badge-health">Healthcare</span>
+          <h3>Emergency Room Patient Triage</h3>
+        </div>
+        <div class="scenario-body">
+          <div class="scenario-row"><span class="key">Problem:</span><span class="val">Emergency rooms need to prioritize patients by severity, but human triage can be inconsistent during peak hours.</span></div>
+          <div class="scenario-row"><span class="key">Inputs:</span><span class="val">Vital signs, symptoms, age, medical history, arrival time</span></div>
+          <div class="scenario-row"><span class="key">Output:</span><span class="val">Priority level → Critical / Urgent / Standard / Non-urgent</span></div>
+          <div class="scenario-row"><span class="key">Why AI?</span><span class="val">Pattern recognition in medical data, learns from thousands of prior triage decisions, consistent 24/7</span></div>
+          <div class="scenario-row"><span class="key">Key Risk:</span><span class="val">Misclassification could be life-threatening — requires 95%+ accuracy and constant human oversight</span></div>
+          <div class="verdict yes">✅ AI-Worthy — Clear pattern recognition, high-volume decisions, measurable outcome</div>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-header">
+          <span class="badge badge-health">Healthcare</span>
+          <h3>Medication Adherence Predictor</h3>
+        </div>
+        <div class="scenario-body">
+          <div class="scenario-row"><span class="key">Problem:</span><span class="val">Patients often forget medications, leading to treatment failures and costly hospitalizations.</span></div>
+          <div class="scenario-row"><span class="key">Inputs:</span><span class="val">Patient demographics, prescription history, past reminder response rates</span></div>
+          <div class="scenario-row"><span class="key">Output:</span><span class="val">Risk score for non-adherence + optimal reminder timing per patient</span></div>
+          <div class="scenario-row"><span class="key">Why AI?</span><span class="val">Behavioral pattern recognition — personalization at scale that no human team could match</span></div>
+          <div class="scenario-row"><span class="key">Success Metric:</span><span class="val">20% increase in medication adherence, 15% reduction in emergency visits</span></div>
+          <div class="verdict yes">✅ AI-Worthy — Personalization at scale, strong historical data, clear measurable outcome</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCE -->
+    <div class="scenario-content" id="tab-finance">
+      <div class="scenario-card">
+        <div class="scenario-header">
+          <span class="badge badge-finance">Finance</span>
+          <h3>Credit Card Fraud Detection</h3>
+        </div>
+        <div class="scenario-body">
+          <div class="scenario-row"><span class="key">Problem:</span><span class="val">Credit card companies need to flag fraudulent transactions in real-time — milliseconds matter.</span></div>
+          <div class="scenario-row"><span class="key">Inputs:</span><span class="val">Transaction amount, location, time, merchant type, customer history, device fingerprint</span></div>
+          <div class="scenario-row"><span class="key">Output:</span><span class="val">Fraud probability score → Approve / Decline / Flag for Review</span></div>
+          <div class="scenario-row"><span class="key">Why AI?</span><span class="val">Learns from millions of past fraud cases, detects new patterns as fraud evolves — no human could review every transaction</span></div>
+          <div class="scenario-row"><span class="key">Success Metric:</span><span class="val">99.9% accuracy, less than 1% false positives, sub-second decision time</span></div>
+          <div class="verdict yes">✅ AI-Worthy — Real-time scale, complex evolving patterns, high ROI from automation</div>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-header">
+          <span class="badge badge-finance">Finance</span>
+          <h3>Personalized Savings Advisor</h3>
+        </div>
+        <div class="scenario-body">
+          <div class="scenario-row"><span class="key">Problem:</span><span class="val">Bank customers need personalized financial advice, but hiring advisors for every customer isn't scalable.</span></div>
+          <div class="scenario-row"><span class="key">Inputs:</span><span class="val">Transaction history, income, stated goals, life events, market conditions</span></div>
+          <div class="scenario-row"><span class="key">Output:</span><span class="val">Personalized saving recommendations, spending alerts, investment suggestions</span></div>
+          <div class="scenario-row"><span class="key">Why AI?</span><span class="val">Personalization at scale — 24/7 availability for millions of users simultaneously</span></div>
+          <div class="scenario-row"><span class="key">Key Risk:</span><span class="val">Generic advice may not fit complex situations; privacy concerns around financial data</span></div>
+          <div class="verdict yes">✅ AI-Worthy — Scale + personalization + pattern recognition in behavioral data</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NO AI -->
+    <div class="scenario-content" id="tab-noai">
+      <div class="analogy-block" style="border-left-color:var(--red); margin-bottom:16px;">
+        <div class="label" style="color:var(--red);">🚫 The "AI-Not-Needed" Red Flags (from the book)</div>
+        <p>Your book includes a clear checklist. Use these to spark class discussion:</p>
+      </div>
+
+      <div class="checklist-grid">
+        <div class="checklist-block">
+          <h4><div class="indicator" style="background:var(--green)"></div>✅ AI IS Worth Considering When…</h4>
+          <div class="check-item"><span class="check-icon">🔵</span><span><strong>Pattern Recognition:</strong> Does the problem involve finding patterns in large amounts of data?</span></div>
+          <div class="check-item"><span class="check-icon">🔵</span><span><strong>Scale:</strong> Do you need to process more information than humans can handle efficiently?</span></div>
+          <div class="check-item"><span class="check-icon">🔵</span><span><strong>Consistency:</strong> Would consistent, repeatable decisions improve outcomes?</span></div>
+          <div class="check-item"><span class="check-icon">🔵</span><span><strong>Learning:</strong> Could the system improve by learning from more examples over time?</span></div>
+          <div class="check-item"><span class="check-icon">🔵</span><span><strong>Automation Value:</strong> Would automating this process create significant, measurable value?</span></div>
+        </div>
+        <div class="checklist-block">
+          <h4><div class="indicator" style="background:var(--red)"></div>🚫 AI is NOT Needed When…</h4>
+          <div class="check-item"><span class="check-icon">🔴</span><span><strong>Simple Rules Work:</strong> Can the problem be solved with basic if-then logic? No AI needed.</span></div>
+          <div class="check-item"><span class="check-icon">🔴</span><span><strong>One-Time Task:</strong> Is this a one-off problem that won't recur at scale?</span></div>
+          <div class="check-item"><span class="check-icon">🔴</span><span><strong>Human Creativity Required:</strong> Does the solution require ethical judgment or creative thinking?</span></div>
+          <div class="check-item"><span class="check-icon">🔴</span><span><strong>Insufficient Data:</strong> Do you have fewer than hundreds of relevant examples to learn from?</span></div>
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-header">
+          <span class="badge badge-retail">Non-AI Example</span>
+          <h3>Bank Needs to "Add Up Account Balances"</h3>
+        </div>
+        <div class="scenario-body">
+          <div class="scenario-row"><span class="key">Request:</span><span class="val">A bank wants to use AI to total up all customer account balances at the end of each day.</span></div>
+          <div class="scenario-row"><span class="key">Why AI Fails Here:</span><span class="val">There is no pattern to find — this is deterministic arithmetic. A spreadsheet formula does this perfectly.</span></div>
+          <div class="scenario-row"><span class="key">Real Cost:</span><span class="val">Months of development + infrastructure + AI team salaries vs. a $0 Excel formula</span></div>
+          <div class="verdict no">🚫 Not AI-Worthy — Simple rules work, no pattern recognition needed, enormous cost for zero added value</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ─── SECTION 4: EXAM Q&A ─── -->
+  <div class="section-block">
+    <div class="section-label">Part 4 — Interactive Q&A</div>
+    <div class="section-title">Exam-Style Questions: Section 1.1</div>
+
+    <div class="qa-intro">
+      <div class="icon">🎯</div>
+      <div>
+        <p><strong>How to use this section:</strong> Ask each question out loud. Let students discuss for 60–90 seconds. Then click the question to reveal the options — ask students to choose before revealing the answer. Click an option to see if it's correct, then read the full explanation. Questions are formatted exactly as they appear on the Certiport exam.</p>
+      </div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="question-block" id="qblock1">
+      <div class="question-head" onclick="toggleQ(1)">
+        <span class="q-badge">Q 01</span>
+        <div class="question-text">A hospital wants to use AI to automatically sort incoming patients in the emergency room by how urgently they need care. Which of the following BEST describes the type of AI problem this represents?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts1" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 1, false)"><span class="opt-letter">A</span>A regression problem, because the system predicts a continuous severity score</li>
+        <li class="option-item" onclick="selectOption(this, 1, true)"><span class="opt-letter">B</span>A classification problem, because the system sorts patients into defined priority categories</li>
+        <li class="option-item" onclick="selectOption(this, 1, false)"><span class="opt-letter">C</span>A reinforcement learning problem, because the system learns by trial and error</li>
+        <li class="option-item" onclick="selectOption(this, 1, false)"><span class="opt-letter">D</span>An unsupervised learning problem, because patient data has no labels</li>
+      </ul>
+      <div class="answer-section" id="ans1">
+        <div class="answer-label">✅ Correct Answer: B</div>
+        <div class="answer-text">
+          The problem asks the AI to place each patient into one of <strong>pre-defined priority categories</strong> (Critical, Urgent, Standard, Non-urgent). Any time you are sorting into known, labeled categories, that is a <strong>classification problem</strong> — the most common type of supervised learning.<br><br>
+          <strong>Why the others are wrong:</strong><br>
+          • A is wrong — regression outputs a continuous number (like a price or temperature), not a category.<br>
+          • C is wrong — reinforcement learning involves trial-and-error reward systems, like game-playing AI.<br>
+          • D is wrong — unsupervised learning is used when no labels exist; here we know the categories in advance.
+        </div>
+        <div class="teacher-note">Ask a follow-up: "What would the inputs be?" Expected answers: vitals, symptoms, age, arrival time. This connects Input/Output Analysis (Question 3 of the 6 critical questions).</div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-block" id="qblock2">
+      <div class="question-head" onclick="toggleQ(2)">
+        <span class="q-badge">Q 02</span>
+        <div class="question-text">A retail company asks its IT team to build an AI system to add up daily sales totals. The IT team recommends NOT using AI. Which reason from the AI Problem Identification framework BEST justifies this recommendation?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts2" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 2, false)"><span class="opt-letter">A</span>The company does not have enough budget for AI infrastructure</li>
+        <li class="option-item" onclick="selectOption(this, 2, false)"><span class="opt-letter">B</span>The problem involves too much data for AI to process</li>
+        <li class="option-item" onclick="selectOption(this, 2, true)"><span class="opt-letter">C</span>The problem can be solved with simple rules and does not require pattern recognition</li>
+        <li class="option-item" onclick="selectOption(this, 2, false)"><span class="opt-letter">D</span>AI systems cannot work with sales data</li>
+      </ul>
+      <div class="answer-section" id="ans2">
+        <div class="answer-label">✅ Correct Answer: C</div>
+        <div class="answer-text">
+          According to the AI Problem Identification framework in the book, one of the clearest "AI Not Needed" red flags is: <strong>"Can the problem be solved with if-then statements or simple arithmetic?"</strong> Adding numbers is deterministic — there's no pattern to find, no learning to be done. A spreadsheet formula handles this instantly at zero cost.<br><br>
+          <strong>Why the others are wrong:</strong><br>
+          • A is a business constraint, not the framework reason — the framework reason is about problem type.<br>
+          • B is incorrect — AI can process large amounts of data; that's actually one of its strengths.<br>
+          • D is false — AI can work with any structured data, including sales figures.
+        </div>
+        <div class="teacher-note">This is a common exam trap — budget and technical limits sound like good reasons, but the framework-correct answer focuses on problem suitability, not resources.</div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-block" id="qblock3">
+      <div class="question-head" onclick="toggleQ(3)">
+        <span class="q-badge">Q 03</span>
+        <div class="question-text">When defining an AI problem, a project manager writes: "We want to improve customer service." According to the AI Problem Identification framework, what is the PRIMARY issue with this problem statement?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts3" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 3, false)"><span class="opt-letter">A</span>Customer service is not an appropriate domain for AI applications</li>
+        <li class="option-item" onclick="selectOption(this, 3, true)"><span class="opt-letter">B</span>The statement is too vague and lacks measurable, specific outcomes</li>
+        <li class="option-item" onclick="selectOption(this, 3, false)"><span class="opt-letter">C</span>The problem requires reinforcement learning, which is too advanced</li>
+        <li class="option-item" onclick="selectOption(this, 3, false)"><span class="opt-letter">D</span>The problem does not include enough input data sources</li>
+      </ul>
+      <div class="answer-section" id="ans3">
+        <div class="answer-label">✅ Correct Answer: B</div>
+        <div class="answer-text">
+          The book gives this exact example. The framework requires <strong>clear, specific, measurable problem definitions.</strong> "Improve customer service" is too broad — you cannot build an AI around it, cannot measure whether it succeeded, and cannot identify what inputs or outputs are needed.<br><br>
+          The correct version would be: <em>"Reduce customer wait times for simple inquiries from 10 minutes to 2 minutes."</em> This has a clear current state, desired state, and measurable success metric.
+        </div>
+        <div class="teacher-note">Great class exercise: Ask students to rewrite "improve customer service" into a proper AI problem statement using the 6-question framework. Give 2 minutes, then share.</div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-block" id="qblock4">
+      <div class="question-head" onclick="toggleQ(4)">
+        <span class="q-badge">Q 04</span>
+        <div class="question-text">A bank wants to build an AI system that detects fraudulent credit card transactions in real-time. Which TWO factors from the AI suitability checklist BEST justify using AI for this problem?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts4" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 4, true)"><span class="opt-letter">A</span>The problem involves recognizing patterns across millions of transactions that humans cannot review manually</li>
+        <li class="option-item" onclick="selectOption(this, 4, false)"><span class="opt-letter">B</span>The bank already has AI developers on staff</li>
+        <li class="option-item" onclick="selectOption(this, 4, true)"><span class="opt-letter">C</span>Fraud patterns evolve constantly, so the system must learn and improve over time</li>
+        <li class="option-item" onclick="selectOption(this, 4, false)"><span class="opt-letter">D</span>The bank's competitors are also using AI for fraud detection</li>
+      </ul>
+      <div class="answer-section" id="ans4">
+        <div class="answer-label">✅ Correct Answers: A and C</div>
+        <div class="answer-text">
+          From the book's "AI-Worthy Checklist":<br><br>
+          • <strong>A — Scale/Pattern Recognition:</strong> No human team can review millions of transactions per second. AI excels at pattern recognition at a scale humans cannot match.<br>
+          • <strong>C — Learning:</strong> Fraud tactics constantly evolve, so a system that learns from new fraud examples is far more effective than static rules.<br><br>
+          <strong>Why B and D are wrong:</strong><br>
+          • B — Having AI staff is a resource question, not a problem suitability question.<br>
+          • D — Competitor behavior is a business strategy reason, not a technical justification from the framework.
+        </div>
+        <div class="teacher-note">Certiport exams often use "choose TWO" questions like this. Reinforce that students should filter answers through the framework, not common sense alone.</div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-block" id="qblock5">
+      <div class="question-head" onclick="toggleQ(5)">
+        <span class="q-badge">Q 05</span>
+        <div class="question-text">In the AI Problem Identification framework, "Input/Output Analysis" refers to which of the following?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts5" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 5, false)"><span class="opt-letter">A</span>Analyzing the power consumption of AI hardware components</li>
+        <li class="option-item" onclick="selectOption(this, 5, true)"><span class="opt-letter">B</span>Identifying what data is available to the AI system and what decisions or predictions it should produce</li>
+        <li class="option-item" onclick="selectOption(this, 5, false)"><span class="opt-letter">C</span>Calculating the cost of AI implementation versus manual processes</li>
+        <li class="option-item" onclick="selectOption(this, 5, false)"><span class="opt-letter">D</span>Reviewing legal requirements for data storage</li>
+      </ul>
+      <div class="answer-section" id="ans5">
+        <div class="answer-label">✅ Correct Answer: B</div>
+        <div class="answer-text">
+          The book defines Input/Output Analysis as: <em>"Identifying what information you have available (inputs) and what you want to achieve (outputs). This is like mapping the journey from Point A to Point B."</em><br><br>
+          For fraud detection:<br>
+          • <strong>Inputs:</strong> Transaction amount, location, time, merchant type, customer history<br>
+          • <strong>Output:</strong> Fraud probability score → Approve / Decline / Review decision<br><br>
+          This analysis is critical because without knowing your inputs and outputs clearly, you cannot choose the right algorithm or measure success.
+        </div>
+        <div class="teacher-note">Quick classroom exercise: For the ER triage scenario, ask students to name 3 inputs and 1 output. Expected inputs: vitals, symptoms, age. Output: priority level.</div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-block" id="qblock6">
+      <div class="question-head" onclick="toggleQ(6)">
+        <span class="q-badge">Q 06</span>
+        <div class="question-text">A healthcare company is building an AI model to predict which patients are at risk of missing their medications. Which success metric is MOST appropriate for evaluating this AI system?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts6" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 6, false)"><span class="opt-letter">A</span>The number of AI engineers needed to maintain the system</li>
+        <li class="option-item" onclick="selectOption(this, 6, false)"><span class="opt-letter">B</span>The speed at which the AI model was trained</li>
+        <li class="option-item" onclick="selectOption(this, 6, true)"><span class="opt-letter">C</span>A measurable increase in the percentage of patients taking medications as prescribed</li>
+        <li class="option-item" onclick="selectOption(this, 6, false)"><span class="opt-letter">D</span>The number of features (data points) used in the model</li>
+      </ul>
+      <div class="answer-section" id="ans6">
+        <div class="answer-label">✅ Correct Answer: C</div>
+        <div class="answer-text">
+          The book's example uses this exact scenario with the metric: <em>"20% increase in medication adherence, 15% reduction in emergency visits."</em><br><br>
+          <strong>Success metrics must be:</strong><br>
+          • Tied directly to the original business problem<br>
+          • Measurable with a specific number or percentage<br>
+          • Reflecting real-world outcome improvement, not technical model performance<br><br>
+          A, B, and D measure technical or operational aspects of the AI system — not whether it actually solved the healthcare problem it was built for.
+        </div>
+        <div class="teacher-note">Key distinction: Model accuracy (technical metric) ≠ Business success metric. Both matter, but the problem statement must define the business metric first.</div>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="question-block" id="qblock7">
+      <div class="question-head" onclick="toggleQ(7)">
+        <span class="q-badge">Q 07</span>
+        <div class="question-text">Which of the following scenarios represents a situation where AI is NOT the appropriate solution, according to the "AI-Not-Needed Red Flags" in the book?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts7" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 7, false)"><span class="opt-letter">A</span>A hospital wants to identify early signs of sepsis by analyzing thousands of patient vital signs per minute</li>
+        <li class="option-item" onclick="selectOption(this, 7, false)"><span class="opt-letter">B</span>A streaming service wants to recommend movies based on a user's past viewing history</li>
+        <li class="option-item" onclick="selectOption(this, 7, true)"><span class="opt-letter">C</span>A small business wants to automatically send a "thank you" email whenever a customer makes a purchase</li>
+        <li class="option-item" onclick="selectOption(this, 7, false)"><span class="opt-letter">D</span>A bank wants to detect unusual account activity that may indicate money laundering</li>
+      </ul>
+      <div class="answer-section" id="ans7">
+        <div class="answer-label">✅ Correct Answer: C</div>
+        <div class="answer-text">
+          Sending a "thank you" email when a purchase is made is a <strong>simple if-then rule</strong>: IF purchase = true, THEN send email. This is deterministic — no pattern recognition, no learning, no ambiguity. Any basic automation tool (not AI) handles this perfectly.<br><br>
+          The other three are legitimate AI use cases:<br>
+          • A — Pattern recognition in high-speed, high-volume medical data<br>
+          • B — Personalized recommendations from behavioral patterns<br>
+          • D — Anomaly detection in financial transaction patterns
+        </div>
+        <div class="teacher-note">Ask students: "What tool WOULD you use for the thank-you email?" Expected answers: Mailchimp automation, website trigger, CRM workflow. This reinforces that AI is a tool, not a default solution.</div>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="question-block" id="qblock8">
+      <div class="question-head" onclick="toggleQ(8)">
+        <span class="q-badge">Q 08</span>
+        <div class="question-text">A fintech company wants to predict whether a loan applicant will repay their loan. According to the AI Problem Identification framework, what is the FIRST step in properly scoping this problem?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts8" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 8, false)"><span class="opt-letter">A</span>Select the most accurate machine learning algorithm available</li>
+        <li class="option-item" onclick="selectOption(this, 8, false)"><span class="opt-letter">B</span>Collect as much customer data as possible before defining the problem</li>
+        <li class="option-item" onclick="selectOption(this, 8, true)"><span class="opt-letter">C</span>Write a clear, specific problem statement that defines what the AI should predict and how success will be measured</li>
+        <li class="option-item" onclick="selectOption(this, 8, false)"><span class="opt-letter">D</span>Calculate the total budget available for the AI project</li>
+      </ul>
+      <div class="answer-section" id="ans8">
+        <div class="answer-label">✅ Correct Answer: C</div>
+        <div class="answer-text">
+          The first of the 6 critical questions is always <strong>Problem Definition</strong>. Before choosing algorithms, collecting data, or budgeting, you must be crystal clear on what you are trying to achieve.<br><br>
+          For this scenario, a proper problem statement would be:<br>
+          <em>"Predict whether a loan applicant will repay within 24 months based on credit history, income, and debt-to-income ratio, with a false positive rate below 5%."</em><br><br>
+          Without this, teams collect the wrong data, build the wrong model, and measure the wrong outcomes — leading to expensive failures.
+        </div>
+        <div class="teacher-note">Exam pattern: "FIRST step" or "PRIMARY reason" questions always point back to the foundational framework concept — in this case, Problem Definition.</div>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="question-block" id="qblock9">
+      <div class="question-head" onclick="toggleQ(9)">
+        <span class="q-badge">Q 09</span>
+        <div class="question-text">In an AI project, a "Cost-Benefit Analysis" is BEST described as which of the following?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts9" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 9, false)"><span class="opt-letter">A</span>A technical evaluation of which algorithm runs fastest on available hardware</li>
+        <li class="option-item" onclick="selectOption(this, 9, true)"><span class="opt-letter">B</span>An assessment of the potential benefits AI could deliver against the risks, costs, and downsides of building it</li>
+        <li class="option-item" onclick="selectOption(this, 9, false)"><span class="opt-letter">C</span>A comparison of how much different cloud providers charge for AI computing</li>
+        <li class="option-item" onclick="selectOption(this, 9, false)"><span class="opt-letter">D</span>A review of how much the AI dataset costs to purchase</li>
+      </ul>
+      <div class="answer-section" id="ans9">
+        <div class="answer-label">✅ Correct Answer: B</div>
+        <div class="answer-text">
+          The book defines Cost-Benefit Analysis as: <em>"Understanding both the potential upsides (efficiency, accuracy, cost savings) and downsides (implementation costs, potential errors, privacy concerns)."</em><br><br>
+          This is not just about money — it includes:<br>
+          • <strong>Benefits:</strong> Efficiency gains, revenue improvement, error reduction<br>
+          • <strong>Costs:</strong> Development time, infrastructure, maintenance, staff training<br>
+          • <strong>Risks:</strong> Privacy concerns, potential for bias, regulatory issues, system failures<br><br>
+          All six must be weighed before approving an AI project.
+        </div>
+        <div class="teacher-note">Class discussion prompt: "Can you think of an AI project where the risks outweigh the benefits?" Example: An AI that recommends medical treatments without a doctor review — benefits are speed, risk is misdiagnosis.</div>
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="question-block" id="qblock10">
+      <div class="question-head" onclick="toggleQ(10)">
+        <span class="q-badge">Q 10</span>
+        <div class="question-text">A project team has defined its AI problem, analyzed inputs and outputs, and confirmed AI is suitable. They now want to ensure the project doesn't fail at deployment. According to the framework, which element should they define NEXT?</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <ul class="options-list" id="opts10" style="display:none;">
+        <li class="option-item" onclick="selectOption(this, 10, false)"><span class="opt-letter">A</span>The color scheme and dashboard design for the AI's user interface</li>
+        <li class="option-item" onclick="selectOption(this, 10, false)"><span class="opt-letter">B</span>The number of employees who will use the system daily</li>
+        <li class="option-item" onclick="selectOption(this, 10, true)"><span class="opt-letter">C</span>Clear success metrics and a risk management plan, including fallback procedures if the AI fails</li>
+        <li class="option-item" onclick="selectOption(this, 10, false)"><span class="opt-letter">D</span>The brand name and logo for the AI product</li>
+      </ul>
+      <div class="answer-section" id="ans10">
+        <div class="answer-label">✅ Correct Answer: C</div>
+        <div class="answer-text">
+          The sixth and final critical question in the AI Problem Identification framework is <strong>Success Metrics & Risk Management</strong>: defining what success looks like in measurable terms and identifying potential pitfalls.<br><br>
+          The book's example for the coffee shop AI states: <em>"Risk benchmark: System should be 95% accurate or fall back to human scheduling."</em><br><br>
+          This is essential because without pre-defined success metrics, you cannot tell whether the project succeeded — and without a risk/fallback plan, a system failure has no recovery path.
+        </div>
+        <div class="teacher-note">Reinforce: This is Question 6 of the 6 critical questions. A good study technique is having students memorize all 6 in order. Consider creating a mnemonic together as a class.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>📘 <strong>Reference:</strong> Artificial Intelligence Deep Dive · Santosh Srinivasaiah · ITS OD 307 · 2025</p>
+    <p style="text-align:right;">Section 1.1 · <strong>Define & Analyze AI Problems</strong></p>
+  </div>
+
+</div>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const pct = (scrollTop / docHeight) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+  });
+
+  // Tabs
+  function showTab(id) {
+    document.querySelectorAll('.scenario-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // Q&A expand/collapse
+  function toggleQ(n) {
+    const block = document.getElementById('qblock' + n);
+    const opts = document.getElementById('opts' + n);
+    const ans = document.getElementById('ans' + n);
+    const isOpen = block.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.question-block').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.options-list').forEach(o => o.style.display = 'none');
+    document.querySelectorAll('.answer-section').forEach(a => a.classList.remove('show'));
+
+    if (!isOpen) {
+      block.classList.add('open');
+      opts.style.display = 'block';
+    }
+  }
+
+  // Option selection
+  function selectOption(el, qNum, isCorrect) {
+    const opts = document.getElementById('opts' + qNum);
+    const ans = document.getElementById('ans' + qNum);
+
+    // Clear all selections in this question
+    opts.querySelectorAll('.option-item').forEach(o => {
+      o.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+    });
+
+    if (isCorrect) {
+      el.classList.add('selected-correct');
+    } else {
+      el.classList.add('selected-wrong');
+      // Highlight the correct one
+      opts.querySelectorAll('.option-item').forEach(o => {
+        if (o.getAttribute('onclick').includes('true')) {
+          o.classList.add('reveal-correct');
+        }
+      });
+    }
+
+    ans.classList.add('show');
+  }
+</script>
+</body>
+</html>
